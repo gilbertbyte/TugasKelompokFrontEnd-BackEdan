@@ -22,7 +22,21 @@
       <a href="#faq">FAQ</a>
       <a href="#kontak">Contact</a>
     </nav>
-    <button class="btn btn-outline-light" id="loginBtn">Login / Sign In</button>
+
+    <div class="user-menu-wrap" id="userMenuWrap">
+      <button class="btn btn-outline-light" id="loginBtn">Login / Sign In</button>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-info">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div class="user-info-text">
+            <div class="user-name" id="userDropdownName">-</div>
+            <div class="user-email" id="userDropdownEmail">-</div>
+          </div>
+        </div>
+        <button id="switchAccountBtn">Ganti Akun</button>
+        <button id="logoutUserBtn">Logout</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -32,11 +46,6 @@
     <span class="badge" id="heroBadge">Platform Kuliner Makassar</span>
     <h1 id="heroHeading">Temukan Es Pisang Ijo Favorit Kamu</h1>
     <p class="hero-sub" id="heroSubheading">Jelajahi pilihan es pisang ijo dan temukan menu kesukaanmu</p>
-
-    <form class="search-bar" id="heroSearchForm">
-      <input type="text" id="heroSearchInput">
-      <button type="submit" class="btn btn-mustard">Cari</button>
-    </form>
 
     <div class="hero-actions">
       <a href="#cari-toko" class="btn btn-mustard" id="heroCtaPrimary">Cari Toko</a>
@@ -235,6 +244,51 @@
     <p id="footerCopyright">&copy; 2026 Pisang Ijo</p>
   </div>
 </footer>
+
+
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <button class="modal-close" id="authModalClose">&times;</button>
+
+    <div id="loginFormWrap">
+      <h3>Login</h3>
+      <form id="loginForm">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" required>
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required>
+        </div>
+        <p class="form-error" id="loginError"></p>
+        <button type="submit" class="btn btn-mustard" style="width:100%;">Login</button>
+      </form>
+      <p class="modal-switch">Belum punya akun? <a href="#" id="showRegister">Daftar</a></p>
+    </div>
+
+    <div id="registerFormWrap" style="display:none;">
+      <h3>Daftar Akun</h3>
+      <form id="registerForm">
+        <div class="field">
+          <label for="registerNama">Nama</label>
+          <input type="text" id="registerNama" required>
+        </div>
+        <div class="field">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" required>
+        </div>
+        <div class="field">
+          <label for="registerPassword">Password (min 8 karakter)</label>
+          <input type="password" id="registerPassword" required minlength="8">
+        </div>
+        <p class="form-error" id="registerError"></p>
+        <button type="submit" class="btn btn-mustard" style="width:100%;">Daftar</button>
+      </form>
+      <p class="modal-switch">Sudah punya akun? <a href="#" id="showLogin">Login</a></p>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="script.js"></script>
