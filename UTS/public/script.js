@@ -265,9 +265,86 @@ $(function () {
 
   
 
+  function openModal(mode) {
+    $("#loginError, #registerError").text("");
+    if (mode === "register") {
+      $("#loginFormWrap").hide();
+      $("#registerFormWrap").show();
+    } else {
+      $("#registerFormWrap").hide();
+      $("#loginFormWrap").show();
+    }
+    $("#authModal").addClass("active");
+  }
+
+  function closeModal() {
+    $("#authModal").removeClass("active");
+  }
+
+  function loginAs(nama, email) {
+    $("#loginBtn").hide();
+    $("#userAvatar").text(nama.charAt(0).toUpperCase());
+    $("#userDropdownName").text(nama);
+    $("#userDropdownEmail").text(email);
+    $("#userDropdown").addClass("show");
+  }
+
+  function logout() {
+    $("#userDropdown").removeClass("show");
+    $("#loginBtn").show();
+  }
+
   $("#loginBtn").on("click", function () {
-    alert("Demo: form Login / Sign In akan tampil di sini.");
+    openModal("login");
   });
+
+  $("#authModalClose").on("click", closeModal);
+
+  $("#authModal").on("click", function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  $("#showRegister").on("click", function (e) {
+    e.preventDefault();
+    openModal("register");
+  });
+
+  $("#showLogin").on("click", function (e) {
+    e.preventDefault();
+    openModal("login");
+  });
+
+  $("#loginForm").on("submit", function (e) {
+    e.preventDefault();
+    var email = $("#loginEmail").val().trim();
+    var pass = $("#loginPassword").val();
+    if (!email || !pass) {
+      $("#loginError").text("Email dan password wajib diisi.");
+      return;
+    }
+    loginAs(email.split("@")[0], email);
+    closeModal();
+  });
+
+  $("#registerForm").on("submit", function (e) {
+    e.preventDefault();
+    var nama = $("#registerNama").val().trim();
+    var email = $("#registerEmail").val().trim();
+    var pass = $("#registerPassword").val();
+    if (!nama || !email || pass.length < 8) {
+      $("#registerError").text("Lengkapi semua kolom (password minimal 8 karakter).");
+      return;
+    }
+    loginAs(nama, email);
+    closeModal();
+  });
+
+  $("#switchAccountBtn").on("click", function () {
+    logout();
+    openModal("login");
+  });
+
+  $("#logoutUserBtn").on("click", logout);
 
   $("#tulisUlasanBtn").on("click", function () {
     alert("Demo: form Tulis Ulasan akan tampil di sini.");
