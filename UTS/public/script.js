@@ -106,10 +106,13 @@ $(function () {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
       var statusText = buka ? "Buka sekarang" : "Tutup";
+      var media = t.image_url
+      ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+      : '<div class="card-media">Ceritanya gambar lokasi</div>';
       $grid.append(
         '<div class="store-card">' +
-          '<div class="card-media">Ceritanya gambar lokasi</div>' +
-          '<div class="card-body">' +
+        media +
+         '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
             '<p class="' + statusClass + '">' + statusText + "</p>" +
