@@ -17,6 +17,16 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nama TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS login_attempts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
@@ -98,6 +108,7 @@ ensureColumn("stores", "image_url", "TEXT");
 ensureColumn("stores", "ulasan_count", "INTEGER DEFAULT 0");
 ensureColumn("stores", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("menu_items", "sort_order", "INTEGER DEFAULT 0");
+ensureColumn("menu_items", "store_id", "INTEGER REFERENCES stores(id)");
 ensureColumn("testimonials", "stars", "INTEGER DEFAULT 5");
 ensureColumn("testimonials", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("faqs", "sort_order", "INTEGER DEFAULT 0");
@@ -206,13 +217,13 @@ if (db.prepare("SELECT COUNT(*) AS c FROM stores").get().c === 0) {
 
 if (db.prepare("SELECT COUNT(*) AS c FROM menu_items").get().c === 0) {
   const insertMenu = db.prepare(
-    `INSERT INTO menu_items (nama, deskripsi, harga, sort_order) VALUES (@nama, @deskripsi, @harga, @sort_order)`
+    `INSERT INTO menu_items (nama, deskripsi, harga, sort_order, store_id) VALUES (@nama, @deskripsi, @harga, @sort_order, @store_id)`
   );
   [
-    { nama: "Pisang Ijo Original", deskripsi: "Saus santan, bubur sumsum", harga: "Rp 15.000", sort_order: 1 },
-    { nama: "Pisang Ijo Cokelat", deskripsi: "Topping cokelat leleh", harga: "Rp 17.000", sort_order: 2 },
-    { nama: "Pisang Ijo Durian", deskripsi: "Dengan durian asli", harga: "Rp 20.000", sort_order: 3 },
-    { nama: "Pisang Ijo Keju", deskripsi: "Taburan keju parut", harga: "Rp 18.000", sort_order: 4 },
+    { nama: "Pisang Ijo Original", deskripsi: "Saus santan, bubur sumsum", harga: "Rp 15.000", sort_order: 1, store_id: 1 },
+    { nama: "Pisang Ijo Cokelat", deskripsi: "Topping cokelat leleh", harga: "Rp 17.000", sort_order: 2, store_id: 1 },
+    { nama: "Pisang Ijo Durian", deskripsi: "Dengan durian asli", harga: "Rp 20.000", sort_order: 3, store_id: 2 },
+    { nama: "Pisang Ijo Keju", deskripsi: "Taburan keju parut", harga: "Rp 18.000", sort_order: 4, store_id: 3 },
   ].forEach((m) => insertMenu.run(m));
 }
 

@@ -73,6 +73,15 @@ $(function () {
       });
   });
 
+  var STORES_CACHE = [];
+
+  function loadStoresCache() {
+    return $.get("/admin/api/stores").done(function (stores) {
+      STORES_CACHE = stores;
+    });
+  }
+  loadStoresCache();
+
   var LIST_CONFIG = {
     stores: {
       title: "Toko",
@@ -92,11 +101,12 @@ $(function () {
     menu: {
       title: "Menu",
       endpoint: "menu",
-      columns: ["nama", "deskripsi", "harga"],
+      columns: ["nama", "deskripsi", "harga", "store_id"],
       fields: [
         { name: "nama", label: "Nama Menu", type: "text", required: true },
         { name: "deskripsi", label: "Deskripsi", type: "text" },
         { name: "harga", label: "Harga (contoh: Rp 15.000)", type: "text" },
+        { name: "store_id", label: "Toko", type: "store-select" },
       ],
     },
     testimonials: {
@@ -150,6 +160,10 @@ $(function () {
           if (col === "status") {
             var cls = val === "Buka" ? "buka" : "tutup";
             return '<td><span class="status-tag ' + cls + '">' + escapeHtml(val) + "</span></td>";
+          }
+          if (col === "store_id") {
+            var store = STORES_CACHE.find(function (s) { return s.id == val; });
+            return "<td>" + (store ? escapeHtml(store.nama) : "<em>Belum dipilih</em>") + "</td>";
           }
           return "<td>" + escapeHtml(truncate(val)) + "</td>";
         })
@@ -222,9 +236,16 @@ $(function () {
         return;
       }
 
-      if (f.type === "textarea") {
-        $input = $("<textarea>").attr("rows", 3).attr("data-field", f.name).val(value || "");
-      } else if (f.type === "select") {
+        if (f.type === "textarea") {
+          $input = $("<textarea>").attr("rows", 3).attr("data-field", f.name).val(value || "");
+        } else if (f.type === "store-select") {
+          $input = $("<select>").attr("data-field", f.name);
+          $input.append($("<option>").val("").text("— Pilih Toko —"));
+          STORES_CACHE.forEach(function (store) {
+            $input.append($("<option>").val(store.id).text(store.nama));
+          });
+          $input.val(value || "");
+        } else if (f.type === "select") {
         $input = $("<select>").attr("data-field", f.name);
         f.options.forEach(function (opt) {
           $input.append($("<option>").val(opt).text(opt));
