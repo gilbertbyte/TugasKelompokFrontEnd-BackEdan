@@ -122,15 +122,9 @@ $(function () {
     list.forEach(function (m) {
       var media = m.image_url
         ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
-<<<<<<< HEAD
            : '<div class="card-media">Ceritanya gambar Menu</div>';
            $grid.append(
           '<div class="menu-card">' +
-=======
-        : '<div class="card-media">Ceritanya gambar Menu</div>';
-      $grid.append(
-        '<div class="menu-card">' +
->>>>>>> aeb04b4f47e28276c286a7af9c55de762fec8a2f
           media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(m.nama) + "</h3>" +

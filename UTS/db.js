@@ -97,10 +97,6 @@ ensureColumn("stores", "jarak", "TEXT");
 ensureColumn("stores", "image_url", "TEXT");
 ensureColumn("stores", "ulasan_count", "INTEGER DEFAULT 0");
 ensureColumn("stores", "sort_order", "INTEGER DEFAULT 0");
-<<<<<<< HEAD
-=======
-ensureColumn("menu_items", "sort_order", "INTEGER DEFAULT 0");
->>>>>>> aeb04b4f47e28276c286a7af9c55de762fec8a2f
 ensureColumn("menu_items", "image_url", "TEXT");
 ensureColumn("testimonials", "stars", "INTEGER DEFAULT 5");
 ensureColumn("testimonials", "sort_order", "INTEGER DEFAULT 0");
