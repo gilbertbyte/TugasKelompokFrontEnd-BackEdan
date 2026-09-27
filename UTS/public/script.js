@@ -224,6 +224,22 @@ $(function () {
 
   /* ---------- Tulis Ulasan (review) ---------- */
 
+  function fillReviewTargetOptions() {
+    var type = $("#reviewTargetType").val();
+    var $target = $("#reviewTargetId").empty().append('<option value="">-- Pilih --</option>');
+
+    if (type === "menu") {
+      STATE.menu.forEach(function (m) {
+        var label = m.nama + (m.store_nama ? " (" + m.store_nama + ")" : "");
+        $target.append($("<option></option>").val(m.id).text(label));
+      });
+    } else {
+      STATE.stores.forEach(function (s) {
+        $target.append($("<option></option>").val(s.id).text(s.nama));
+      });
+    }
+  }
+
   function openReviewModal() {
     if (!currentUser) {
       closeAuthModal();
@@ -233,6 +249,8 @@ $(function () {
     $("#reviewError").removeClass("show").text("");
     $("#reviewSuccess").removeClass("show").text("");
     $("#reviewForm").show();
+    $("#reviewTargetType").val("store");
+    fillReviewTargetOptions();
     $("#reviewModalOverlay").addClass("open");
   }
 
@@ -245,14 +263,23 @@ $(function () {
   $("#reviewModalOverlay").on("click", function (e) {
     if (e.target === this) closeReviewModal();
   });
+  $("#reviewTargetType").on("change", fillReviewTargetOptions);
 
   $("#reviewForm").on("submit", function (e) {
     e.preventDefault();
     $("#reviewError").removeClass("show").text("");
 
+    var targetId = $("#reviewTargetId").val();
+    if (!targetId) {
+      $("#reviewError").addClass("show").text("Pilih dulu toko atau menu yang mau kamu ulas.");
+      return;
+    }
+
     var payload = {
       ulasan: $("#reviewText").val().trim(),
       stars: $("#reviewStars").val(),
+      target_type: $("#reviewTargetType").val(),
+      target_id: targetId,
     };
 
     $.ajax({
@@ -284,7 +311,14 @@ $(function () {
     $.getJSON("/api/site-content", function (data) {
       if (data && data.testimonials) {
         var mapped = data.testimonials.map(function (t) {
-          return { nama: t.nama, ulasan: t.ulasan, waktu: t.waktu, stars: t.stars };
+          return {
+            nama: t.nama,
+            ulasan: t.ulasan,
+            waktu: t.waktu,
+            stars: t.stars,
+            target_type: t.target_type,
+            target_nama: t.target_nama,
+          };
         });
         if (mapped.length) {
           testimoniData = mapped;
@@ -311,10 +345,14 @@ $(function () {
     list.forEach(function (t) {
       var starCount = Number(t.stars) || 5;
       var stars = "★".repeat(starCount) + "☆".repeat(5 - starCount);
+      var targetLabel = t.target_nama
+        ? (t.target_type === "menu" ? "Menu: " : "Toko: ") + escapeHtml(t.target_nama)
+        : "";
       var card = $(
         '<div class="testi-card">' +
           '<div class="stars">' + stars + '</div>' +
           '<div class="name">' + escapeHtml(t.nama) + '</div>' +
+          (targetLabel ? '<div class="pill pill-mustard" style="margin-bottom:8px;">' + targetLabel + '</div>' : '') +
           '<p>' + escapeHtml(t.ulasan) + '</p>' +
           '<div class="when">' + escapeHtml(t.waktu) + '</div>' +
         '</div>'
