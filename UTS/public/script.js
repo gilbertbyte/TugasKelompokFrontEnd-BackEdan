@@ -124,10 +124,10 @@ $(function () {
         ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
         : '<div class="card-media">Ceritanya gambar lokasi</div>';
       $grid.append(
-        '<div class="store-card" data-store-id="' + t.id + '" style="position:relative;">' +
-          wishlistBtnHtml("store", t.id) +
+        '<div class="store-card" data-store-id="' + t.id + '">' +
           media +
           '<div class="card-body">' +
+            wishlistBtnHtml("store", t.id) +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
             '<p class="' + statusClass + '">' + statusText + "</p>" +
@@ -153,14 +153,13 @@ $(function () {
 
       $grid.append(
         '<div class="menu-card">' +
-          wishlistBtnHtml("menu", m.id) +
           media +
           '<div class="card-body">' +
+            wishlistBtnHtml("menu", m.id) +
             "<h3>" + escapeHtml(m.nama) + "</h3>" +
             '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
             '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
             storeInfo +
-            '<button class="add-btn" title="Tambah ke keranjang">+</button>' +
           "</div>" +
         "</div>"
       );
@@ -192,10 +191,10 @@ $(function () {
         ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
         : "";
       $grid.append(
-        '<div class="store-card" data-store-id="' + t.id + '" style="position:relative;">' +
-          wishlistBtnHtml("store", t.id) +
+        '<div class="store-card" data-store-id="' + t.id + '">' +
           media +
           '<div class="card-body">' +
+            wishlistBtnHtml("store", t.id) +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
             '<p class="meta">Jarak: ' + escapeHtml(t.jarak || "-") + "</p>" +
@@ -257,12 +256,6 @@ $(function () {
   $("#filterForm").on("submit", function (e) {
     e.preventDefault();
     applyFilter();
-  });
-
-  $(document).on("click", ".add-btn", function () {
-    var $btn = $(this);
-    $btn.text("✓");
-    setTimeout(function () { $btn.text("+"); }, 900);
   });
 
   $(document).on("click", ".menu-toko-link", function (e) {

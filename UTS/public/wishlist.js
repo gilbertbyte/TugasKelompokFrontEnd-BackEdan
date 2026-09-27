@@ -176,9 +176,9 @@ $(function () {
             : '<div class="card-media">Ceritanya gambar Menu</div>';
           $menuGrid.append(
             '<div class="menu-card">' +
-              wishlistBtnHtml("menu", m.id) +
               media +
               '<div class="card-body">' +
+                wishlistBtnHtml("menu", m.id) +
                 "<h3>" + escapeHtml(m.nama) + "</h3>" +
                 '<p class="desc">' + escapeHtml(m.store_nama ? "Dari: " + m.store_nama : (m.deskripsi || "")) + "</p>" +
                 '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
@@ -194,10 +194,10 @@ $(function () {
             ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
             : '<div class="card-media">Ceritanya gambar lokasi</div>';
           $storeGrid.append(
-            '<div class="store-card" style="position:relative;">' +
-              wishlistBtnHtml("store", t.id) +
+            '<div class="store-card">' +
               media +
               '<div class="card-body">' +
+                wishlistBtnHtml("store", t.id) +
                 "<h3>" + escapeHtml(t.nama) + "</h3>" +
                 '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
               "</div>" +
