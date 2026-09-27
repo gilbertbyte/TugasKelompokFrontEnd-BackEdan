@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Admin Dashboard — Pisang Ijo</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/admin/assets/admin.css">
 </head>
 <body>
   <header class="admin-header">
-    <span class="admin-logo">Admin<em>Dashboard</em></span>
+    <span class="admin-logo">Site <em>Admin</em></span>
     <div class="admin-user">
       <span id="whoami"></span>
       <button id="logoutBtn" class="btn-logout">Logout</button>
@@ -18,59 +18,85 @@
 
   <div class="admin-shell">
     <nav class="admin-sidebar">
-      <button class="tab-btn active" data-tab="hero">Beranda / Hero</button>
-      <button class="tab-btn" data-tab="toko">Toko</button>
-      <button class="tab-btn" data-tab="menu">Menu</button>
-      <button class="tab-btn" data-tab="tentang">Tentang &amp; Sejarah</button>
-      <button class="tab-btn" data-tab="testimoni">Testimoni</button>
-      <button class="tab-btn" data-tab="cari">Cari Toko (teks)</button>
-      <button class="tab-btn" data-tab="faq">FAQ</button>
-      <button class="tab-btn" data-tab="kontak">Kontak</button>
-      <button class="tab-btn" data-tab="footer">Footer</button>
-      <button class="tab-btn" data-tab="situs">Pengaturan Situs</button>
+      <button class="tab-btn active" data-tab="hero"><span class="tab-icon">🏠</span> Beranda / Hero</button>
+      <button class="tab-btn" data-tab="toko"><span class="tab-icon">🏪</span> Toko</button>
+      <button class="tab-btn" data-tab="menu"><span class="tab-icon">🍽️</span> Menu</button>
+      <button class="tab-btn" data-tab="tentang"><span class="tab-icon">📖</span> Tentang &amp; Sejarah</button>
+      <button class="tab-btn" data-tab="testimoni"><span class="tab-icon">💬</span> Testimoni</button>
+      <button class="tab-btn" data-tab="cari"><span class="tab-icon">🔍</span> Cari Toko (teks)</button>
+      <button class="tab-btn" data-tab="faq"><span class="tab-icon">❓</span> FAQ</button>
+      <button class="tab-btn" data-tab="kontak"><span class="tab-icon">✉️</span> Kontak</button>
+      <button class="tab-btn" data-tab="footer"><span class="tab-icon">📎</span> Footer</button>
+      <button class="tab-btn" data-tab="situs"><span class="tab-icon">⚙️</span> Pengaturan Situs</button>
     </nav>
 
     <main class="admin-main">
 
-      
+      <!-- HERO -->
       <section class="tab-panel active" id="tab-hero">
-        <h1>Beranda / Hero</h1>
-        <form class="content-form" id="form-hero">
-          <label>Badge</label>
-          <input type="text" data-field="badge">
-          <label>Title (Heading)</label>
-          <input type="text" data-field="heading">
-          <label>Sub-title</label>
-          <textarea data-field="subheading" rows="2"></textarea>
-          <label>Placeholder Search Bar</label>
-          <input type="text" data-field="search_placeholder">
-          <label>Teks Tombol Utama</label>
-          <input type="text" data-field="cta_primary">
-          <label>Teks Tombol Kedua</label>
-          <input type="text" data-field="cta_secondary">
-          <button type="submit" class="btn-primary">Save</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="panel-header">
+          <div>
+            <h1>Beranda / Hero</h1>
+            <p class="panel-subtitle">Bagian paling atas yang pertama dilihat pengunjung.</p>
+          </div>
+        </div>
+
+        <div class="form-preview-row">
+          <form class="content-form" id="form-hero">
+            <label>Badge</label>
+            <input type="text" data-field="badge">
+            <label>Judul (Heading)</label>
+            <input type="text" data-field="heading">
+            <label>Sub-judul</label>
+            <textarea data-field="subheading" rows="2"></textarea>
+            <label>Placeholder Kolom Pencarian</label>
+            <input type="text" data-field="search_placeholder">
+            <label>Teks Tombol Utama</label>
+            <input type="text" data-field="cta_primary">
+            <label>Teks Tombol Kedua</label>
+            <input type="text" data-field="cta_secondary">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-hero"></div>
+          </div>
+        </div>
       </section>
 
-      
+      <!-- TOKO -->
       <section class="tab-panel" id="tab-toko">
-        <h1>Toko</h1>
+        <div class="panel-header">
+          <div>
+            <h1>Toko</h1>
+            <p class="panel-subtitle">Daftar toko dipakai di beranda (3 teratas) dan halaman Cari Toko (semua).</p>
+          </div>
+        </div>
 
-        <h2 class="sub-heading">Teks Bagian "Popular Stores"</h2>
-        <form class="content-form" id="form-toko_populer">
-          <label>Judul</label>
-          <input type="text" data-field="heading">
-          <label>Sub-judul</label>
-          <textarea data-field="subheading" rows="2"></textarea>
-          <label>Teks Tautan "Lihat semua"</label>
-          <input type="text" data-field="link_text">
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <h2 class="sub-heading">Teks Bagian "Toko Populer"</h2>
+        <div class="form-preview-row">
+          <form class="content-form" id="form-toko_populer">
+            <label>Judul</label>
+            <input type="text" data-field="heading">
+            <label>Sub-judul</label>
+            <textarea data-field="subheading" rows="2"></textarea>
+            <label>Teks Tautan "Lihat semua"</label>
+            <input type="text" data-field="link_text">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-toko_populer"></div>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Daftar Toko</h2>
-        <p class="hint">Dipakai di beranda (3 teratas) dan halaman Cari Toko (semua).</p>
         <button class="btn-primary add-item-btn" data-list="stores">+ Tambah Toko</button>
         <table class="admin-table" data-list-table="stores">
           <thead>
@@ -80,19 +106,32 @@
         </table>
       </section>
 
-      
+      <!-- MENU -->
       <section class="tab-panel" id="tab-menu">
-        <h1>Menu</h1>
+        <div class="panel-header">
+          <div>
+            <h1>Menu</h1>
+            <p class="panel-subtitle">Menu unggulan yang ditampilkan di beranda.</p>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Teks Bagian "Menu Unggulan"</h2>
-        <form class="content-form" id="form-menu_section">
-          <label>Judul</label>
-          <input type="text" data-field="heading">
-          <label>Sub-judul</label>
-          <textarea data-field="subheading" rows="2"></textarea>
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="form-preview-row">
+          <form class="content-form" id="form-menu_section">
+            <label>Judul</label>
+            <input type="text" data-field="heading">
+            <label>Sub-judul</label>
+            <textarea data-field="subheading" rows="2"></textarea>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-menu_section"></div>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Daftar Menu</h2>
         <button class="btn-primary add-item-btn" data-list="menu">+ Tambah Menu</button>
@@ -102,61 +141,95 @@
         </table>
       </section>
 
-      
+      <!-- TENTANG & SEJARAH -->
       <section class="tab-panel" id="tab-tentang">
-        <h1>Tentang &amp; Sejarah</h1>
+        <div class="panel-header">
+          <div>
+            <h1>Tentang &amp; Sejarah</h1>
+            <p class="panel-subtitle">Cerita di balik platform dan sejarah pisang ijo.</p>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Tentang Platform</h2>
-        <form class="content-form" id="form-about">
-          <label>Label kecil (eyebrow)</label>
-          <input type="text" data-field="eyebrow">
-          <label>Judul</label>
-          <input type="text" data-field="heading">
-          <label>Deskripsi</label>
-          <textarea data-field="description" rows="3"></textarea>
-          <label>Teks placeholder gambar</label>
-          <input type="text" data-field="media_text">
-          <label>Gambar Tentang</label>
-          <img id="aboutImagePreview" style="max-width:200px;display:none;border-radius:8px;margin-bottom:8px;">
-          <input type="file" id="aboutImageFile" accept="image/jpeg,image/png,image/webp">
-          <span id="aboutImageStatus" style="font-size:0.8rem;color:#5B6B62;margin-left:8px;"></span>
-          <input type="hidden" data-field="image_url" id="aboutImageUrl">
-          <label>Pill 1</label>
-          <input type="text" data-field="pill_1">
-          <label>Pill 2</label>
-          <input type="text" data-field="pill_2">
-          <label>Pill 3</label>
-          <input type="text" data-field="pill_3">
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="form-preview-row">
+          <form class="content-form" id="form-about">
+            <label>Label kecil (eyebrow)</label>
+            <input type="text" data-field="eyebrow">
+            <label>Judul</label>
+            <input type="text" data-field="heading">
+            <label>Deskripsi</label>
+            <textarea data-field="description" rows="3"></textarea>
+            <label>Teks placeholder gambar</label>
+            <input type="text" data-field="media_text">
+            <label>Gambar Tentang</label>
+            <img id="aboutImagePreview" style="max-width:200px;display:none;border-radius:8px;margin-bottom:8px;">
+            <input type="file" id="aboutImageFile" accept="image/jpeg,image/png,image/webp">
+            <span id="aboutImageStatus" style="font-size:0.8rem;color:#66756C;margin-left:8px;"></span>
+            <input type="hidden" data-field="image_url" id="aboutImageUrl">
+            <label>Pill 1</label>
+            <input type="text" data-field="pill_1">
+            <label>Pill 2</label>
+            <input type="text" data-field="pill_2">
+            <label>Pill 3</label>
+            <input type="text" data-field="pill_3">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-about"></div>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Sejarah Pisang Ijo</h2>
-        <form class="content-form" id="form-history">
-          <label>Judul</label>
-          <input type="text" data-field="heading">
-          <label>Isi Teks</label>
-          <textarea data-field="text" rows="5"></textarea>
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="form-preview-row">
+          <form class="content-form" id="form-history">
+            <label>Judul</label>
+            <input type="text" data-field="heading">
+            <label>Isi Teks</label>
+            <textarea data-field="text" rows="5"></textarea>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-history"></div>
+          </div>
+        </div>
       </section>
 
-      
+      <!-- TESTIMONI -->
       <section class="tab-panel" id="tab-testimoni">
-        <h1>Testimoni</h1>
+        <div class="panel-header">
+          <div>
+            <h1>Testimoni</h1>
+            <p class="panel-subtitle">Ulasan pelanggan yang ditampilkan di beranda.</p>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Teks Bagian Testimoni</h2>
-        <form class="content-form" id="form-testimonial_section">
-          <label>Label kecil (eyebrow)</label>
-          <input type="text" data-field="eyebrow">
-          <label>Judul</label>
-          <input type="text" data-field="heading">
-          <label>Teks Tombol "Tulis Ulasan"</label>
-          <input type="text" data-field="cta">
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="form-preview-row">
+          <form class="content-form" id="form-testimonial_section">
+            <label>Label kecil (eyebrow)</label>
+            <input type="text" data-field="eyebrow">
+            <label>Judul</label>
+            <input type="text" data-field="heading">
+            <label>Teks Tombol "Tulis Ulasan"</label>
+            <input type="text" data-field="cta">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-testimonial_section"></div>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Daftar Testimoni</h2>
         <button class="btn-primary add-item-btn" data-list="testimonials">+ Tambah Testimoni</button>
@@ -166,35 +239,61 @@
         </table>
       </section>
 
-      
+      <!-- CARI TOKO TEXT -->
       <section class="tab-panel" id="tab-cari">
-        <h1>Cari Toko (Teks Bagian)</h1>
-        <p class="hint">Daftar toko itu sendiri dikelola di tab "Toko".</p>
-        <form class="content-form" id="form-cari_toko">
-          <label>Label kecil (eyebrow)</label>
-          <input type="text" data-field="eyebrow">
-          <label>Judul</label>
-          <input type="text" data-field="heading">
-          <label>Sub-judul</label>
-          <textarea data-field="subheading" rows="2"></textarea>
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="panel-header">
+          <div>
+            <h1>Cari Toko (Teks Bagian)</h1>
+            <p class="panel-subtitle">Daftar toko itu sendiri dikelola di tab "Toko".</p>
+          </div>
+        </div>
+
+        <div class="form-preview-row">
+          <form class="content-form" id="form-cari_toko">
+            <label>Label kecil (eyebrow)</label>
+            <input type="text" data-field="eyebrow">
+            <label>Judul</label>
+            <input type="text" data-field="heading">
+            <label>Sub-judul</label>
+            <textarea data-field="subheading" rows="2"></textarea>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-cari_toko"></div>
+          </div>
+        </div>
       </section>
 
-      
+      <!-- FAQ -->
       <section class="tab-panel" id="tab-faq">
-        <h1>FAQ</h1>
+        <div class="panel-header">
+          <div>
+            <h1>FAQ</h1>
+            <p class="panel-subtitle">Pertanyaan yang sering ditanyakan pengunjung.</p>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Teks Bagian FAQ</h2>
-        <form class="content-form" id="form-faq_section">
-          <label>Label kecil (eyebrow)</label>
-          <input type="text" data-field="eyebrow">
-          <label>Judul</label>
-          <input type="text" data-field="heading">
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="form-preview-row">
+          <form class="content-form" id="form-faq_section">
+            <label>Label kecil (eyebrow)</label>
+            <input type="text" data-field="eyebrow">
+            <label>Judul</label>
+            <input type="text" data-field="heading">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-faq_section"></div>
+          </div>
+        </div>
 
         <h2 class="sub-heading">Daftar Pertanyaan</h2>
         <button class="btn-primary add-item-btn" data-list="faqs">+ Tambah Pertanyaan</button>
@@ -204,74 +303,122 @@
         </table>
       </section>
 
-      
+      <!-- KONTAK -->
       <section class="tab-panel" id="tab-kontak">
-        <h1>Kontak</h1>
-        <form class="content-form" id="form-contact">
-          <label>Label kecil (eyebrow)</label>
-          <input type="text" data-field="eyebrow">
-          <label>Judul</label>
-          <input type="text" data-field="heading">
-          <label>Email</label>
-          <input type="text" data-field="email">
-          <label>WhatsApp</label>
-          <input type="text" data-field="whatsapp">
-          <label>Catatan Bantuan</label>
-          <textarea data-field="note" rows="2"></textarea>
-          <label>Jam Layanan</label>
-          <input type="text" data-field="hours">
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="panel-header">
+          <div>
+            <h1>Kontak</h1>
+            <p class="panel-subtitle">Informasi kontak yang ditampilkan di halaman.</p>
+          </div>
+        </div>
+
+        <div class="form-preview-row">
+          <form class="content-form" id="form-contact">
+            <label>Label kecil (eyebrow)</label>
+            <input type="text" data-field="eyebrow">
+            <label>Judul</label>
+            <input type="text" data-field="heading">
+            <label>Email</label>
+            <input type="text" data-field="email">
+            <label>WhatsApp</label>
+            <input type="text" data-field="whatsapp">
+            <label>Catatan Bantuan</label>
+            <textarea data-field="note" rows="2"></textarea>
+            <label>Jam Layanan</label>
+            <input type="text" data-field="hours">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-contact"></div>
+          </div>
+        </div>
       </section>
 
-      
+      <!-- FOOTER -->
       <section class="tab-panel" id="tab-footer">
-        <h1>Footer</h1>
-        <form class="content-form" id="form-footer">
-          <label>Tagline</label>
-          <textarea data-field="tagline" rows="2"></textarea>
-          <label>Teks Sosial Media</label>
-          <input type="text" data-field="social_text">
-          <label>Email Bantuan</label>
-          <input type="text" data-field="help_email">
-          <label>WhatsApp Bantuan</label>
-          <input type="text" data-field="help_whatsapp">
-          <label>Label "Syarat & Ketentuan"</label>
-          <input type="text" data-field="legal_terms_label">
-          <label>Label "Kebijakan Privasi"</label>
-          <input type="text" data-field="legal_privacy_label">
-          <label>Teks Copyright</label>
-          <input type="text" data-field="copyright">
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="panel-header">
+          <div>
+            <h1>Footer</h1>
+            <p class="panel-subtitle">Bagian paling bawah situs.</p>
+          </div>
+        </div>
+
+        <div class="form-preview-row">
+          <form class="content-form" id="form-footer">
+            <label>Tagline</label>
+            <textarea data-field="tagline" rows="2"></textarea>
+            <label>Teks Sosial Media</label>
+            <input type="text" data-field="social_text">
+            <label>Email Bantuan</label>
+            <input type="text" data-field="help_email">
+            <label>WhatsApp Bantuan</label>
+            <input type="text" data-field="help_whatsapp">
+            <label>Label "Syarat & Ketentuan"</label>
+            <input type="text" data-field="legal_terms_label">
+            <label>Label "Kebijakan Privasi"</label>
+            <input type="text" data-field="legal_privacy_label">
+            <label>Teks Copyright</label>
+            <input type="text" data-field="copyright">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-footer"></div>
+          </div>
+        </div>
       </section>
 
-      
+      <!-- SITE SETTINGS -->
       <section class="tab-panel" id="tab-situs">
-        <h1>Pengaturan Situs</h1>
-        <form class="content-form" id="form-site">
-          <label>Judul Situs (browser tab)</label>
-          <input type="text" data-field="site_title">
-          <label>Teks Logo (header &amp; footer)</label>
-          <input type="text" data-field="logo_text">
-          <button type="submit" class="btn-primary">Simpan Perubahan</button>
-          <span class="save-status"></span>
-        </form>
+        <div class="panel-header">
+          <div>
+            <h1>Pengaturan Situs</h1>
+            <p class="panel-subtitle">Judul tab browser dan nama logo yang tampil di header/footer.</p>
+          </div>
+        </div>
+
+        <div class="form-preview-row">
+          <form class="content-form" id="form-site">
+            <label>Judul Situs (browser tab)</label>
+            <input type="text" data-field="site_title">
+            <label>Teks Logo (header &amp; footer)</label>
+            <input type="text" data-field="logo_text">
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Simpan Perubahan</button>
+              <span class="save-status"></span>
+            </div>
+          </form>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="preview-site"></div>
+          </div>
+        </div>
       </section>
 
     </main>
   </div>
 
-  
+  <!-- Generic Add/Edit modal for list items (stores, menu, testimonials, faqs) -->
   <div class="modal-backdrop" id="itemModal">
     <div class="modal">
       <h2 id="itemModalTitle">Tambah Item</h2>
       <form id="itemForm">
         <input type="hidden" id="itemId">
         <input type="hidden" id="itemListKey">
-        <div id="itemFormFields"></div>
+        <div class="modal-body-grid">
+          <div id="itemFormFields"><!-- fields injected by admin.js based on list type --></div>
+          <div class="preview-pane">
+            <div class="preview-pane-label">Live Preview</div>
+            <div class="preview-surface" id="itemPreview"></div>
+          </div>
+        </div>
         <div class="modal-actions">
           <button type="button" class="btn-outline" id="cancelItemModalBtn">Batal</button>
           <button type="submit" class="btn-primary">Simpan</button>
