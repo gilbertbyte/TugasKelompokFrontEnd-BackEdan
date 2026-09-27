@@ -1,111 +1,118 @@
 $(function () {
-// placeholder
-  var tokoPopuler = [
-    { nama: "Es Pisang Ijo Bu Ida", jam: "08.00 - 21.00", rating: "4.8", buka: true },
-    { nama: "Pisang Ijo Daeng Sija", jam: "09.00 - 20.00", rating: "4.6", buka: true },
-    { nama: "Pisang Ijo Ratu Rasa", jam: "10.00 - 18.00", rating: "4.5", buka: false }
-  ];
 
-  var menuUnggulan = [
-    { nama: "Pisang Ijo Original", desc: "Saus santan, bubur sumsum", harga: "Rp 15.000" },
-    { nama: "Pisang Ijo Cokelat", desc: "Topping cokelat leleh", harga: "Rp 17.000" },
-    { nama: "Pisang Ijo Durian", desc: "Dengan durian asli", harga: "Rp 20.000" },
-    { nama: "Pisang Ijo Keju", desc: "Taburan keju parut", harga: "Rp 18.000" }
-  ];
+  var STATE = { stores: [], menu: [] };
 
-  var testimoni = [
-    { nama: "Rangga", ulasan: "Porem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.", waktu: "2 hari yang lalu" },
-    { nama: "Salsabila", ulasan: "Porem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.", waktu: "5 hari yang lalu" },
-    { nama: "Fajar", ulasan: "Porem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.", waktu: "1 minggu yang lalu" }
-  ];
+  /* ---------- Helpers ---------- */
 
-  var tokoHasil = [
-    { nama: "Es Pisang Ijo Bu Ida", alamat: "Jl. Pengayoman, Makassar", jarak: "1.2 km", buka: true, jam: "08.00 - 21.00", rating: "4.8", ulasan: 128 },
-    { nama: "Pisang Ijo Daeng Sija", alamat: "Jl. Boulevard, Makassar", jarak: "2.4 km", buka: true, jam: "09.00 - 20.00", rating: "4.6", ulasan: 96 },
-    { nama: "Pisang Ijo Ratu Rasa", alamat: "Jl. Sultan Alauddin, Makassar", jarak: "3.1 km", buka: false, jam: "10.00 - 18.00", rating: "4.5", ulasan: 54 }
-  ];
+  function escapeHtml(str) {
+    return $("<div>").text(str == null ? "" : str).html();
+  }
+
+  // STUB: belum ada backend/handler wishlist beneran.
+  // Tombolnya tampil tapi belum nyimpen apa-apa - tinggal isi function ini
+  // kalau nanti mau bikin fitur wishlist beneran (butuh route API + tabel baru).
+  function wishlistBtnHtml(type, id) {
+    return '<button class="wishlist-btn" data-type="' + type + '" data-id="' + id + '" title="Simpan ke wishlist" type="button">♡</button>';
+  }
 
   /* ---------- Renderers ---------- */
 
-  function renderTokoPopuler() {
+  function renderTokoPopuler(list) {
     var $grid = $("#tokoPopulerGrid").empty();
-    tokoPopuler.forEach(function (t) {
-      var statusClass = t.buka ? "status-open" : "status-closed";
-      var statusText = t.buka ? "Buka sekarang" : "Tutup";
-      var card = $(
-        '<div class="store-card">' +
-          '<div class="card-media">Ceritanya gambar lokasi</div>' +
+    list.forEach(function (t) {
+      var buka = t.status === "Buka";
+      var statusClass = buka ? "status-open" : "status-closed";
+      var statusText = buka ? "Buka sekarang" : "Tutup";
+      var media = t.image_url
+        ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+        : '<div class="card-media">Ceritanya gambar lokasi</div>';
+      $grid.append(
+        '<div class="store-card" data-store-id="' + t.id + '">' +
+          media +
           '<div class="card-body">' +
-            '<h3>' + t.nama + '</h3>' +
-            '<p class="meta">Jam Buka: ' + t.jam + '</p>' +
-            '<p class="' + statusClass + '">' + statusText + '</p>' +
-            '<span class="rating">★ ' + t.rating + '</span>' +
-          '</div>' +
-        '</div>'
+            wishlistBtnHtml("store", t.id) +
+            "<h3>" + escapeHtml(t.nama) + "</h3>" +
+            '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
+            '<p class="' + statusClass + '">' + statusText + "</p>" +
+            '<span class="rating">★ ' + t.rating + "</span>" +
+          "</div>" +
+        "</div>"
       );
-      $grid.append(card);
     });
   }
 
   function renderMenu(list) {
     var $grid = $("#menuGrid").empty();
     list.forEach(function (m) {
-      var card = $(
-        '<div class="menu-card">' +
-          '<div class="card-media">Ceritanya gambar Menu</div>' +
-          '<div class="card-body">' +
-            '<h3>' + m.nama + '</h3>' +
-            '<p class="desc">' + m.desc + '</p>' +
-            '<span class="price">' + m.harga + '</span>' +
-            '<button class="add-btn" title="Tambah ke keranjang">+</button>' +
-          '</div>' +
-        '</div>'
-      );
-      $grid.append(card);
-    });
-  }
+      var media = m.image_url
+        ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
+        : '<div class="card-media">Ceritanya gambar Menu</div>';
 
-  function renderTestimoni() {
-    var $grid = $("#testimoniGrid").empty();
-    testimoni.forEach(function (t) {
-      var card = $(
-        '<div class="testi-card">' +
-          '<div class="stars">★★★★★</div>' +
-          '<div class="name">' + t.nama + '</div>' +
-          '<p>' + t.ulasan + '</p>' +
-          '<div class="when">' + t.waktu + '</div>' +
-        '</div>'
+      var storeInfo = m.store_nama
+        ? '<p class="menu-store-info">Tersedia di: <strong>' + escapeHtml(m.store_nama) + '</strong></p>' +
+          '<a href="#" class="link-arrow menu-toko-link" data-store-id="' + m.store_id + '">Lihat Toko Ini</a>'
+        : '<p class="menu-store-info">Toko belum ditentukan</p>';
+
+      $grid.append(
+        '<div class="menu-card">' +
+          media +
+          '<div class="card-body">' +
+            wishlistBtnHtml("menu", m.id) +
+            "<h3>" + escapeHtml(m.nama) + "</h3>" +
+            '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
+            '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
+            storeInfo +
+          "</div>" +
+        "</div>"
       );
-      $grid.append(card);
     });
   }
 
   function renderTokoHasil(list) {
     var $grid = $("#tokoHasilGrid").empty();
     list.forEach(function (t) {
-      var statusClass = t.buka ? "status-open" : "status-closed";
-      var statusText = t.buka ? "Buka" : "Tutup";
-      var card = $(
-        '<div class="store-card">' +
+      var buka = t.status === "Buka";
+      var statusClass = buka ? "status-open" : "status-closed";
+      var media = t.image_url
+        ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+        : "";
+      $grid.append(
+        '<div class="store-card" data-store-id="' + t.id + '">' +
+          media +
           '<div class="card-body">' +
-            '<h3>' + t.nama + '</h3>' +
-            '<p class="meta">' + t.alamat + '</p>' +
-            '<p class="meta">Jarak: ' + t.jarak + '</p>' +
-            '<p class="' + statusClass + '">' + statusText + ' &middot; ' + t.jam + '</p>' +
-            '<span class="rating">★ ' + t.rating + ' (' + t.ulasan + ' ulasan)</span><br>' +
+            wishlistBtnHtml("store", t.id) +
+            "<h3>" + escapeHtml(t.nama) + "</h3>" +
+            '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
+            '<p class="meta">Jarak: ' + escapeHtml(t.jarak || "-") + "</p>" +
+            '<p class="' + statusClass + '">' + escapeHtml(t.status) + " &middot; " + escapeHtml(t.jam_buka || "") + "</p>" +
+            '<span class="rating">★ ' + t.rating + " (" + (t.ulasan_count || 0) + " ulasan)</span><br>" +
             '<a href="#" class="link-arrow" style="margin-top:10px;display:inline-block;">Lihat Detail</a>' +
-          '</div>' +
-        '</div>'
+          "</div>" +
+        "</div>"
       );
-      $grid.append(card);
     });
     $("#resultsCount").text(list.length);
   }
 
-  renderTokoPopuler();
-  renderMenu(menuUnggulan);
-  renderTestimoni();
-  renderTokoHasil(tokoHasil);
+  /* ---------- Load toko & menu dari server ---------- */
+
+  function loadStoresAndMenu() {
+    $.getJSON("/api/site-content")
+      .done(function (data) {
+        STATE.stores = data.stores || [];
+        STATE.menu = data.menu || [];
+        renderTokoPopuler(STATE.stores.slice(0, 3));
+        renderTokoHasil(STATE.stores);
+        renderMenu(STATE.menu);
+      })
+      .fail(function () {
+        $("#tokoPopulerGrid, #tokoHasilGrid, #menuGrid").html(
+          '<p style="color:#B23A55;">Gagal memuat data dari server.</p>'
+        );
+      });
+  }
+
+  loadStoresAndMenu();
 
   /* ---------- Hero search ---------- */
 
@@ -125,13 +132,13 @@ $(function () {
     var status = $("#filterStatus").val();
     var sort = $("#filterSort").val();
 
-    var filtered = tokoHasil.filter(function (t) {
+    var filtered = STATE.stores.filter(function (t) {
       var matchNama = !nama || t.nama.toLowerCase().indexOf(nama) !== -1;
-      var matchKota = !kota || t.alamat.toLowerCase().indexOf(kota) !== -1;
+      var matchKota = !kota || (t.alamat || "").toLowerCase().indexOf(kota) !== -1;
       var matchStatus =
         status === "Semua Status" ||
-        (status === "Buka" && t.buka) ||
-        (status === "Tutup" && !t.buka);
+        (status === "Buka" && t.status === "Buka") ||
+        (status === "Tutup" && t.status === "Tutup");
       return matchNama && matchKota && matchStatus;
     });
 
@@ -173,8 +180,6 @@ $(function () {
       $panel.css("max-height", $panel.prop("scrollHeight") + "px");
     }
   });
-
-  /* ---------- Demo buttons (no backend, just UX feedback) ---------- */
 
   /* ---------- Tulis Ulasan (review) ---------- */
 
@@ -268,9 +273,9 @@ $(function () {
       var card = $(
         '<div class="testi-card">' +
           '<div class="stars">' + stars + '</div>' +
-          '<div class="name">' + t.nama + '</div>' +
-          '<p>' + t.ulasan + '</p>' +
-          '<div class="when">' + t.waktu + '</div>' +
+          '<div class="name">' + escapeHtml(t.nama) + '</div>' +
+          '<p>' + escapeHtml(t.ulasan) + '</p>' +
+          '<div class="when">' + escapeHtml(t.waktu) + '</div>' +
         '</div>'
       );
       $grid.append(card);
