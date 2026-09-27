@@ -38,6 +38,9 @@ $(function () {
           var field = $(this).data("field");
           $(this).val(data[field] !== undefined ? data[field] : "");
         });
+        if (key === "about" && data.image_url) {
+          $("#aboutImagePreview").attr("src", data.image_url).show();
+          }
       })
       .fail(handleAuthFail);
   }
@@ -352,3 +355,27 @@ $(function () {
   });
 
 });
+$("#aboutImageFile").on("change", function () {
+    var file = this.files[0];
+    if (!file) return;
+    var formData = new FormData();
+    formData.append("image", file);
+    $("#aboutImageStatus").text("Mengupload...");
+
+    $.ajax({
+      url: "/admin/api/upload",
+      method: "POST",
+      data: formData,
+      processData: false,
+      contentType: false,
+    })
+      .done(function (res) {
+        $("#aboutImageUrl").val(res.url);
+        $("#aboutImagePreview").attr("src", res.url).show();
+        $("#aboutImageStatus").text("Berhasil ✓");
+        setTimeout(function () { $("#aboutImageStatus").text(""); }, 2000);
+      })
+      .fail(function () {
+        $("#aboutImageStatus").text("Gagal upload.");
+      });
+  });

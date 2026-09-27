@@ -116,6 +116,11 @@
           <textarea data-field="description" rows="3"></textarea>
           <label>Teks placeholder gambar</label>
           <input type="text" data-field="media_text">
+          <label>Gambar Tentang</label>
+          <img id="aboutImagePreview" style="max-width:200px;display:none;border-radius:8px;margin-bottom:8px;">
+          <input type="file" id="aboutImageFile" accept="image/jpeg,image/png,image/webp">
+          <span id="aboutImageStatus" style="font-size:0.8rem;color:#5B6B62;margin-left:8px;"></span>
+          <input type="hidden" data-field="image_url" id="aboutImageUrl">
           <label>Pill 1</label>
           <input type="text" data-field="pill_1">
           <label>Pill 2</label>

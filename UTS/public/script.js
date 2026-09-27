@@ -1,8 +1,8 @@
 $(function () {
 
   var STATE = { stores: [], menu: [], testimonials: [], faqs: [] };
-  var currentUser = null;
-  var currentUserEmail = null;
+
+  
 
   $.get("/api/site-content")
     .done(function (data) {
@@ -22,6 +22,8 @@ $(function () {
       console.error("Could not load site content from the server.");
     });
 
+  
+
   function applyContent(c) {
     if (c.site) {
       $("#pageTitle").text(c.site.site_title + " — Platform Kuliner Makassar");
@@ -31,6 +33,7 @@ $(function () {
       $("#heroBadge").text(c.hero.badge);
       $("#heroHeading").text(c.hero.heading);
       $("#heroSubheading").text(c.hero.subheading);
+      $("#heroSearchInput").attr("placeholder", c.hero.search_placeholder);
       $("#heroCtaPrimary").text(c.hero.cta_primary);
       $("#heroCtaSecondary").text(c.hero.cta_secondary);
     }
@@ -44,7 +47,13 @@ $(function () {
       $("#menuSectionSub").text(c.menu_section.subheading);
     }
     if (c.about) {
-      $("#aboutMediaText").text(c.about.media_text);
+      if (c.about.image_url) {
+        $("#aboutMediaText").parent().html(
+          '<img src="' + escapeHtml(c.about.image_url) + '" alt="Tentang Pisang Ijo" style="width:100%;height:100%;object-fit:cover;border-radius:24px;">'
+        );
+      } else {
+        $("#aboutMediaText").text(c.about.media_text);
+      }
       $("#aboutEyebrow").text(c.about.eyebrow);
       $("#aboutHeading").text(c.about.heading);
       $("#aboutDescription").text(c.about.description);
@@ -89,18 +98,17 @@ $(function () {
     }
   }
 
+  
+
   function renderTokoPopuler(list) {
     var $grid = $("#tokoPopulerGrid").empty();
     list.forEach(function (t) {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
       var statusText = buka ? "Buka sekarang" : "Tutup";
-      var media = t.image_url
-        ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-        : '<div class="card-media">Ceritanya gambar lokasi</div>';
       $grid.append(
-        '<div class="store-card" data-store-id="' + t.id + '">' +
-          media +
+        '<div class="store-card">' +
+          '<div class="card-media">Ceritanya gambar lokasi</div>' +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
@@ -115,15 +123,9 @@ $(function () {
   function renderMenu(list) {
     var $grid = $("#menuGrid").empty();
     list.forEach(function (m) {
-      var storeInfo = m.store_nama
-        ? '<p class="menu-store-info">Tersedia di: <strong>' + escapeHtml(m.store_nama) + '</strong></p>' +
-          '<a href="#" class="link-arrow menu-toko-link" data-store-id="' + m.store_id + '">Lihat Toko Ini</a>'
-        : '<p class="menu-store-info">Toko belum ditentukan</p>';
-
       var media = m.image_url
         ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
         : '<div class="card-media">Ceritanya gambar Menu</div>';
-
       $grid.append(
         '<div class="menu-card">' +
           media +
@@ -131,7 +133,6 @@ $(function () {
             "<h3>" + escapeHtml(m.nama) + "</h3>" +
             '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
             '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
-            storeInfo +
             '<button class="add-btn" title="Tambah ke keranjang">+</button>' +
           "</div>" +
         "</div>"
@@ -159,12 +160,8 @@ $(function () {
     list.forEach(function (t) {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
-      var media = t.image_url
-        ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-        : "";
       $grid.append(
-        '<div class="store-card" data-store-id="' + t.id + '">' +
-          media +
+        '<div class="store-card">' +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
@@ -196,6 +193,18 @@ $(function () {
   function escapeHtml(str) {
     return $("<div>").text(str == null ? "" : str).html();
   }
+
+  
+
+  $("#heroSearchForm").on("submit", function (e) {
+    e.preventDefault();
+    var q = $("#heroSearchInput").val().trim();
+    $("#filterNama").val(q);
+    $("html, body").animate({ scrollTop: $("#cari-toko").offset().top - 80 }, 400);
+    applyFilter();
+  });
+
+  
 
   function applyFilter() {
     var nama = $("#filterNama").val().trim().toLowerCase();
@@ -229,33 +238,15 @@ $(function () {
     applyFilter();
   });
 
+  
+
   $(document).on("click", ".add-btn", function () {
     var $btn = $(this);
     $btn.text("✓");
     setTimeout(function () { $btn.text("+"); }, 900);
   });
 
-  $(document).on("click", ".menu-toko-link", function (e) {
-    e.preventDefault();
-    var storeId = $(this).data("store-id");
-    highlightStore(storeId);
-  });
-
-  function highlightStore(storeId) {
-    $("html, body").animate(
-      { scrollTop: $("#toko-populer").offset().top - 80 },
-      400,
-      function () {
-        var $card = $('.store-card[data-store-id="' + storeId + '"]');
-        if ($card.length) {
-          $card.addClass("store-highlight");
-          setTimeout(function () {
-            $card.removeClass("store-highlight");
-          }, 2000);
-        }
-      }
-    );
-  }
+  
 
   function bindAccordion() {
     $(".accordion-trigger").off("click").on("click", function () {
@@ -272,133 +263,14 @@ $(function () {
     });
   }
 
-  $("#tulisUlasanBtn").on("click", function () {
-    alert("Demo: form Tulis Ulasan akan tampil di sini.");
-  });
-
-  function checkUserSession() {
-    $.get("/api/user/me").done(function (data) {
-      if (data.loggedIn) {
-        currentUser = data.nama;
-        currentUserEmail = data.email || "";
-        $("#loginBtn").text("Hi, " + data.nama);
-        $("#userDropdownName").text(data.nama);
-        $("#userDropdownEmail").text(currentUserEmail);
-        $("#userAvatar").text(data.nama.charAt(0).toUpperCase());
-      } else {
-        currentUser = null;
-        $("#loginBtn").text("Login / Sign In");
-      }
-    });
-  }
-  checkUserSession();
+  
 
   $("#loginBtn").on("click", function () {
-    if (currentUser) {
-      $("#userDropdown").toggleClass("open");
-      return;
-    }
-    $("#authModal").addClass("open");
-    $("#loginFormWrap").show();
-    $("#registerFormWrap").hide();
+    alert("Demo: form Login / Sign In akan tampil di sini.");
   });
 
-  $("#logoutUserBtn").on("click", function () {
-    $.post("/api/user/logout").done(function () {
-      currentUser = null;
-      $("#loginBtn").text("Login / Sign In");
-      $("#userDropdown").removeClass("open");
-    });
-  });
-
-  $("#switchAccountBtn").on("click", function () {
-    $.post("/api/user/logout").done(function () {
-      currentUser = null;
-      $("#loginBtn").text("Login / Sign In");
-      $("#userDropdown").removeClass("open");
-      $("#authModal").addClass("open");
-      $("#loginFormWrap").show();
-      $("#registerFormWrap").hide();
-    });
-  });
-
-  $(document).on("click", function (e) {
-    if (!$(e.target).closest("#userMenuWrap").length) {
-      $("#userDropdown").removeClass("open");
-    }
-  });
-
-  $("#authModalClose").on("click", function () {
-    $("#authModal").removeClass("open");
-  });
-  $("#authModal").on("click", function (e) {
-    if (e.target === this) $(this).removeClass("open");
-  });
-
-  $("#showRegister").on("click", function (e) {
-    e.preventDefault();
-    $("#loginFormWrap").hide();
-    $("#registerFormWrap").show();
-  });
-  $("#showLogin").on("click", function (e) {
-    e.preventDefault();
-    $("#registerFormWrap").hide();
-    $("#loginFormWrap").show();
-  });
-
-  $("#loginForm").on("submit", function (e) {
-    e.preventDefault();
-    $("#loginError").text("");
-    $.ajax({
-      url: "/api/user/login",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({
-        email: $("#loginEmail").val(),
-        password: $("#loginPassword").val(),
-      }),
-    })
-      .done(function (data) {
-        currentUser = data.nama;
-        currentUserEmail = data.email || "";
-        $("#loginBtn").text("Hi, " + data.nama);
-        $("#userDropdownName").text(data.nama);
-        $("#userDropdownEmail").text(currentUserEmail);
-        $("#userAvatar").text(data.nama.charAt(0).toUpperCase());
-        $("#authModal").removeClass("open");
-        $("#loginForm")[0].reset();
-      })
-      .fail(function (xhr) {
-        $("#loginError").text((xhr.responseJSON && xhr.responseJSON.error) || "Login gagal.");
-      });
-  });
-
-  $("#registerForm").on("submit", function (e) {
-    e.preventDefault();
-    $("#registerError").text("");
-    $.ajax({
-      url: "/api/user/register",
-      method: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({
-        nama: $("#registerNama").val(),
-        email: $("#registerEmail").val(),
-        password: $("#registerPassword").val(),
-      }),
-    })
-      .done(function (data) {
-        currentUser = data.nama;
-        currentUserEmail = data.email || "";
-        $("#loginBtn").text("Hi, " + data.nama);
-        $("#userDropdownName").text(data.nama);
-        $("#userDropdownEmail").text(currentUserEmail);
-        $("#userAvatar").text(data.nama.charAt(0).toUpperCase());
-        $("#authModal").removeClass("open");
-        $("#registerForm")[0].reset();
-      })
-      .fail(function (xhr) {
-        $("#registerError").text((xhr.responseJSON && xhr.responseJSON.error) || "Registrasi gagal.");
-      });
+  $("#tulisUlasanBtn").on("click", function () {
+    alert("Demo: form Tulis Ulasan akan tampil di sini.");
   });
 
 });

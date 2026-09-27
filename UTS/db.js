@@ -156,6 +156,7 @@ seedContentBlock("about", {
   description:
     "Corem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.",
   media_text: "Ceritanya Gambar Bahan Bahan Pisang Ijo",
+  image_url: "",
   pill_1: "Pisang Segar Pilihan",
   pill_2: "Santan Lembut",
   pill_3: "Layanan Penuh Perhatian",
