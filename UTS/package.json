@@ -1,6 +1,9 @@
 {
   "name": "pisangijo-app",
   "version": "1.0.0",
+   "engines": {
+    "node": "20.x"
+  },
   "description": "Pisang Ijo site with authenticated admin backend",
   "main": "server.js",
   "scripts": {
