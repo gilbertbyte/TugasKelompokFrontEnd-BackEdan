@@ -3,54 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title id="pageTitle">Es Pisang Ijo | Platform Kuliner Makassar</title>
+<title>Pisang Ijo — Platform Kuliner Makassar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-
+<!-- HEADER -->
 <header class="site-header">
   <div class="container header-inner">
-    <a href="#" class="logo" id="siteLogo">Es Pisang Ijo</a>
+    <a href="#" class="logo">Pisang Ijo</a>
     <nav class="main-nav">
       <a href="#beranda">Home</a>
       <a href="#cari-toko">Cari Toko</a>
       <a href="#menu">Menu</a>
       <a href="#tentang">About</a>
       <a href="#faq">FAQ</a>
-      <a href="wishlist.html" id="navWishlist" style="display:none;">List Aku</a>
       <a href="#kontak">Contact</a>
     </nav>
-
-    <div class="user-menu-wrap" id="userMenuWrap">
+    <div id="authArea">
       <button class="btn btn-outline-light" id="loginBtn">Login / Sign In</button>
-      <div class="user-dropdown" id="userDropdown">
-        <div class="user-dropdown-info">
-          <div class="user-avatar" id="userAvatar">?</div>
-          <div class="user-info-text">
-            <div class="user-name" id="userDropdownName">-</div>
-            <div class="user-email" id="userDropdownEmail">-</div>
-          </div>
-        </div>
-        <button id="switchAccountBtn">Ganti Akun</button>
-        <button id="logoutUserBtn">Logout</button>
-      </div>
     </div>
   </div>
 </header>
 
-
+<!-- HERO -->
 <section class="hero" id="beranda">
   <div class="container hero-inner">
-    <span class="badge" id="heroBadge">Platform Kuliner Makassar</span>
-    <h1 id="heroHeading">Temukan Es Pisang Ijo Favorit Kamu</h1>
-    <p class="hero-sub" id="heroSubheading">Jelajahi pilihan es pisang ijo dan temukan menu kesukaanmu</p>
+    <span class="badge">Platform Kuliner Makassar</span>
+    <h1>Temukan Es Pisang Ijo<br>Favorit Kamu</h1>
+    <p class="hero-sub">Jelajahi pilihan es pisang ijo dan temukan menu kesukaanmu</p>
+
+    <form class="search-bar" id="heroSearchForm">
+      <input type="text" placeholder="Cari toko atau menu es pisang ijo" id="heroSearchInput">
+      <button type="submit" class="btn btn-mustard">Cari</button>
+    </form>
 
     <div class="hero-actions">
-      <a href="#cari-toko" class="btn btn-mustard" id="heroCtaPrimary">Cari Toko</a>
-      <a href="#menu" class="btn btn-outline-light" id="heroCtaSecondary">Lihat Menu</a>
+      <a href="#cari-toko" class="btn btn-mustard">Cari Toko</a>
+      <a href="#menu" class="btn btn-outline-light">Lihat Menu</a>
     </div>
   </div>
   <div class="hero-bowls" aria-hidden="true">
@@ -59,88 +51,92 @@
   </div>
 </section>
 
-
+<!-- TOKO POPULER -->
 <section class="section" id="toko-populer">
   <div class="container">
     <div class="section-head">
       <div>
-        <h2 id="tokoPopulerHeading">Toko Populer &amp; Rating</h2>
-        <p class="section-sub" id="tokoPopulerSub">Torem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <h2>Toko Populer &amp; Rating</h2>
+        <p class="section-sub">Torem ipsum dolor sit amet, consectetur adipiscing elit.</p>
       </div>
-      <a href="#cari-toko" class="link-arrow" id="tokoPopulerLink">Lihat semua toko</a>
+      <a href="#cari-toko" class="link-arrow">Lihat semua toko</a>
     </div>
 
     <div class="grid grid-3" id="tokoPopulerGrid">
-      
+      <!-- cards injected by script.js -->
     </div>
   </div>
 </section>
 
-
+<!-- MENU UNGGULAN -->
 <section class="section section-tinted" id="menu">
   <div class="container">
     <div class="section-head section-head-center">
-      <h2 id="menuSectionHeading">Menu Unggulan</h2>
-      <p class="section-sub" id="menuSectionSub">Pilih paduan rasa favorit untuk anda coba nanti</p>
+      <h2>Menu Unggulan</h2>
+      <p class="section-sub">Pilih paduan rasa favorit untuk anda coba nanti</p>
     </div>
 
     <div class="grid grid-4" id="menuGrid">
-      
+      <!-- menu cards injected by script.js -->
     </div>
   </div>
 </section>
 
-
+<!-- TENTANG PLATFORM -->
 <section class="section" id="tentang">
   <div class="container about-grid">
     <div class="about-media">
-      <div class="media-frame" id="aboutMediaText">Ceritanya Gambar Bahan Bahan Pisang Ijo</div>
+      <div class="media-frame">Ceritanya Gambar Bahan Bahan Pisang Ijo</div>
     </div>
     <div class="about-copy">
-      <span class="eyebrow-pink" id="aboutEyebrow">Tentang Platform</span>
-      <h2 id="aboutHeading">Merayakan segarnya rasa yang akrab</h2>
-      <p id="aboutDescription">Corem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.</p>
+      <span class="eyebrow-pink">Tentang Platform</span>
+      <h2>Merayakan segarnya rasa yang akrab</h2>
+      <p>Corem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.</p>
       <ul class="pill-list">
-        <li class="pill pill-green" id="aboutPill1">Pisang Segar Pilihan</li>
-        <li class="pill pill-mustard" id="aboutPill2">Santan Lembut</li>
-        <li class="pill pill-pink" id="aboutPill3">Layanan Penuh Perhatian</li>
+        <li class="pill pill-green">Pisang Segar Pilihan</li>
+        <li class="pill pill-mustard">Santan Lembut</li>
+        <li class="pill pill-pink">Layanan Penuh Perhatian</li>
       </ul>
     </div>
   </div>
 
   <div class="container">
     <div class="history-box">
-      <h3 id="historyHeading">Sejarah Pisang Ijo</h3>
-      <p id="historyText">Vorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <h3>Sejarah Pisang Ijo</h3>
+      <p>Vorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Ut commodo efficitur neque. Ut diam quam, semper iaculis condimentum ac, vestibulum eu nisl.</p>
     </div>
   </div>
 </section>
 
-
+<!-- TESTIMONI -->
 <section class="section section-dark" id="testimoni">
   <div class="container">
     <div class="section-head">
       <div>
-        <span class="eyebrow-mustard" id="testimonialEyebrow">Kota Mereka #MerekaBicara</span>
-        <h2 class="light" id="testimonialHeading">Testimoni Pelanggan</h2>
+        <span class="eyebrow-mustard">Kota Mereka #MerekaBicara</span>
+        <h2 class="light">Testimoni Pelanggan</h2>
       </div>
       <button class="btn btn-mustard" id="tulisUlasanBtn">Tulis Ulasan</button>
     </div>
 
     <div class="grid grid-3" id="testimoniGrid">
-      
+      <!-- testimonial cards injected by script.js -->
+    </div>
+
+    <div class="pagination" id="testimoniPagination">
+      <!-- page number buttons injected by script.js -->
     </div>
   </div>
 </section>
 
-
+<!-- CARI TOKO -->
 <section class="section" id="cari-toko">
   <div class="container">
     <div class="section-head">
       <div>
-        <span class="eyebrow-mustard" id="cariTokoEyebrow">Pencarian Lokasi</span>
-        <h2 id="cariTokoHeading">Cari Toko Es Pisang Ijo</h2>
-        <p class="section-sub" id="cariTokoSub">Masukkan nama toko atau menu dan area/kota secara manual</p>
+        <span class="eyebrow-mustard">Pencarian Lokasi</span>
+        <h2>Cari Toko Es Pisang Ijo</h2>
+        <p class="section-sub">Masukkan nama toko atau menu dan area/kota secara manual</p>
       </div>
     </div>
 
@@ -172,50 +168,73 @@
       <button type="submit" class="btn btn-mustard">Terapkan Pencarian</button>
     </form>
 
-    <p class="results-count"><span id="resultsCount">0</span> Toko Ditemukan</p>
+    <p class="results-count"><span id="resultsCount">3</span> Toko Ditemukan</p>
 
     <div class="grid grid-3" id="tokoHasilGrid">
-      
+      <!-- store result cards injected by script.js -->
     </div>
   </div>
 </section>
 
-
+<!-- FAQ -->
 <section class="section section-tinted" id="faq">
   <div class="container faq-wrap">
     <div class="section-head section-head-center">
-      <span class="eyebrow-mustard" id="faqEyebrow">Butuh Bantuan?</span>
-      <h2 id="faqHeading">Pertanyaan Yang Sering Ditanyakan</h2>
+      <span class="eyebrow-mustard">Butuh Bantuan?</span>
+      <h2>Pertanyaan Yang Sering Ditanyakan</h2>
     </div>
 
     <div class="accordion" id="faqAccordion">
-      
+      <div class="accordion-item">
+        <button class="accordion-trigger">Bagaimana Cara Pesan?</button>
+        <div class="accordion-panel"><p>Pilih toko atau menu favoritmu, lalu hubungi toko langsung melalui kontak yang tersedia di halaman detail toko.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger">Apakah tersedia pilihan varian?</button>
+        <div class="accordion-panel"><p>Ya, sebagian besar toko menyediakan beberapa varian topping dan tingkat kemanisan.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger">Berapa estimasi proses pesanan?</button>
+        <div class="accordion-panel"><p>Estimasi waktu bervariasi tergantung toko, umumnya 15-30 menit setelah pesanan dikonfirmasi.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger">Bagaimana cara daftar akun?</button>
+        <div class="accordion-panel"><p>Klik tombol Login / Sign In di bagian atas halaman, lalu ikuti langkah pendaftaran akun baru.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger">Bagaimana cara memberi ulasan?</button>
+        <div class="accordion-panel"><p>Setelah login, kamu dapat menekan tombol Tulis Ulasan pada bagian testimoni pelanggan.</p></div>
+      </div>
+      <div class="accordion-item">
+        <button class="accordion-trigger">Apakah semua toko menerima pesanan online?</button>
+        <div class="accordion-panel"><p>Tidak semua, status penerimaan pesanan online ditampilkan pada masing-masing halaman toko.</p></div>
+      </div>
     </div>
   </div>
 </section>
 
-
+<!-- KONTAK -->
 <section class="section" id="kontak">
   <div class="container kontak-box">
     <div>
-      <span class="eyebrow-mustard" id="contactEyebrow">Kontak</span>
-      <h2 id="contactHeading">Mari ngobrol tentang rasa favoritmu</h2>
-      <p><span id="contactEmail">halo@pisangijokita.com</span><br>WhatsApp CS demo : <span id="contactWhatsapp">+62 700 0000 0000</span></p>
+      <span class="eyebrow-mustard">Kontak</span>
+      <h2>Mari ngobrol tentang rasa favoritmu</h2>
+      <p>Email support demo : halo@pisangijokita.com<br>WhatsApp CS demo : +62 700 0000 0000</p>
     </div>
     <div class="kontak-note">
-      <p id="contactNote">Butuh bantuan menggunakan halaman demo ini?</p>
-      <p><strong>Jam layanan umum:</strong> <span id="contactHours">Senin - Sabtu, 09.00 - 18.00</span></p>
+      <p>Butuh bantuan menggunakan halaman demo ini? Hubungi kanal contoh berikut pada jam layanan umum.</p>
+      <p><strong>Jam layanan umum:</strong> Senin - Sabtu, 09.00 - 18.00</p>
     </div>
   </div>
 </section>
 
-
+<!-- FOOTER -->
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">
-      <span class="logo light" id="footerLogo">Pisang Ijo</span>
-      <p id="footerTagline">Platform demo untuk menjelajahi menu dan toko es pisang ijo</p>
-      <p class="footer-social" id="footerSocial">Sosial demo : Instagram - TikTok - Facebook</p>
+      <span class="logo light">Pisang Ijo</span>
+      <p>Platform demo untuk menjelajahi menu dan toko es pisang ijo</p>
+      <p class="footer-social">Sosial demo : Instagram - TikTok - Facebook</p>
     </div>
     <div>
       <h4>Tautan Cepat</h4>
@@ -229,65 +248,92 @@
     <div>
       <h4>Bantuan &amp; Kontak</h4>
       <ul>
-        <li id="footerHelpEmail">halo@pisangijokita.com</li>
-        <li id="footerHelpWhatsapp">WhatsApp CS demo: +62 800 0000 0000</li>
+        <li>halo@pisangijokita.com</li>
+        <li>WhatsApp CS demo: +62 800 0000 0000</li>
       </ul>
     </div>
     <div>
       <h4>Legal</h4>
       <ul>
-        <li><a href="#" id="footerLegalTerms">Syarat &amp; Ketentuan</a></li>
-        <li><a href="#" id="footerLegalPrivacy">Kebijakan Privasi</a></li>
+        <li><a href="#">Syarat &amp; Ketentuan</a></li>
+        <li><a href="#">Kebijakan Privasi</a></li>
       </ul>
     </div>
   </div>
   <div class="container footer-bottom">
-    <p id="footerCopyright">&copy; 2026 Pisang Ijo</p>
+    <p>&copy; 2026 Pisang Ijo</p>
   </div>
 </footer>
 
-
-<div class="modal-overlay" id="authModal">
+<!-- REVIEW MODAL -->
+<div class="modal-overlay" id="reviewModalOverlay">
   <div class="modal-box">
-    <button class="modal-close" id="authModalClose">&times;</button>
+    <button class="modal-close" id="reviewModalClose" aria-label="Tutup">&times;</button>
+    <h3 style="margin-bottom:16px;">Tulis Ulasan</h3>
 
-    <div id="loginFormWrap">
-      <h3>Login</h3>
-      <form id="loginForm">
-        <div class="field">
-          <label for="loginEmail">Email</label>
-          <input type="email" id="loginEmail" required>
-        </div>
-        <div class="field">
-          <label for="loginPassword">Password</label>
-          <input type="password" id="loginPassword" required>
-        </div>
-        <p class="form-error" id="loginError"></p>
-        <button type="submit" class="btn btn-mustard" style="width:100%;">Login</button>
-      </form>
-      <p class="modal-switch">Belum punya akun? <a href="#" id="showRegister">Daftar</a></p>
+    <p class="modal-error" id="reviewError"></p>
+    <p class="modal-success" id="reviewSuccess"></p>
+
+    <form id="reviewForm" class="modal-form">
+      <div class="field">
+        <label for="reviewStars">Rating</label>
+        <select id="reviewStars">
+          <option value="5">★★★★★ (5)</option>
+          <option value="4">★★★★ (4)</option>
+          <option value="3">★★★ (3)</option>
+          <option value="2">★★ (2)</option>
+          <option value="1">★ (1)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="reviewText">Ulasan Kamu</label>
+        <textarea id="reviewText" rows="4" required placeholder="Ceritakan pengalamanmu..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-mustard modal-submit">Kirim Ulasan</button>
+    </form>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="authModalClose" aria-label="Tutup">&times;</button>
+
+    <div class="modal-tabs">
+      <button class="modal-tab active" data-tab="login">Login</button>
+      <button class="modal-tab" data-tab="register">Daftar Akun</button>
     </div>
 
-    <div id="registerFormWrap" style="display:none;">
-      <h3>Daftar Akun</h3>
-      <form id="registerForm">
-        <div class="field">
-          <label for="registerNama">Nama</label>
-          <input type="text" id="registerNama" required>
-        </div>
-        <div class="field">
-          <label for="registerEmail">Email</label>
-          <input type="email" id="registerEmail" required>
-        </div>
-        <div class="field">
-          <label for="registerPassword">Password (min 8 karakter)</label>
-          <input type="password" id="registerPassword" required minlength="8">
-        </div>
-        <p class="form-error" id="registerError"></p>
-        <button type="submit" class="btn btn-mustard" style="width:100%;">Daftar</button>
-      </form>
-      <p class="modal-switch">Sudah punya akun? <a href="#" id="showLogin">Login</a></p>
-    </div>
+    <p class="modal-error" id="authError"></p>
+
+    <form id="loginForm" class="modal-form">
+      <div class="field">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-mustard modal-submit">Login</button>
+    </form>
+
+    <form id="registerForm" class="modal-form" style="display:none;">
+      <div class="field">
+        <label for="registerNama">Nama</label>
+        <input type="text" id="registerNama" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="registerEmail">Email</label>
+        <input type="email" id="registerEmail" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="registerPassword">Password</label>
+        <input type="password" id="registerPassword" required minlength="8" autocomplete="new-password">
+        <p class="field-hint">Minimal 8 karakter</p>
+      </div>
+      <button type="submit" class="btn btn-mustard modal-submit">Daftar</button>
+    </form>
   </div>
 </div>
 

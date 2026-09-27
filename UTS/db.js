@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const bcrypt = require("bcrypt");
 const Database = require("better-sqlite3");
 
 const dbPath = path.join(__dirname, "data", "app.db");
@@ -88,17 +89,6 @@ db.exec(`
   )
 `);
 
-// Wishlist ("List yang Pengen Kamu Coba")
-db.exec(`
-  CREATE TABLE IF NOT EXISTS wishlist_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    item_type TEXT NOT NULL CHECK(item_type IN ('menu', 'store')),
-    item_id INTEGER NOT NULL,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, item_type, item_id)
-  )
-`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS content_blocks (
@@ -117,14 +107,26 @@ function ensureColumn(table, column, definition) {
 }
 
 ensureColumn("stores", "jarak", "TEXT");
-ensureColumn("stores", "images", "TEXT DEFAULT '[]'");
+ensureColumn("stores", "image_url", "TEXT");
 ensureColumn("stores", "ulasan_count", "INTEGER DEFAULT 0");
 ensureColumn("stores", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("menu_items", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("menu_items", "store_id", "INTEGER REFERENCES stores(id)");
-ensureColumn("menu_items", "images", "TEXT DEFAULT '[]'");
+ensureColumn("menu_items", "image_url", "TEXT");
 ensureColumn("testimonials", "stars", "INTEGER DEFAULT 5");
 ensureColumn("testimonials", "sort_order", "INTEGER DEFAULT 0");
+
+// Add "approved" moderation column. Testimonials that already existed
+// before this column was added are treated as already-approved (they
+// were already publicly visible), so they don't disappear.
+const hadApprovedColumn = db
+  .prepare("PRAGMA table_info(testimonials)")
+  .all()
+  .some((c) => c.name === "approved");
+ensureColumn("testimonials", "approved", "INTEGER DEFAULT 0");
+if (!hadApprovedColumn) {
+  db.prepare("UPDATE testimonials SET approved = 1").run();
+}
 ensureColumn("faqs", "sort_order", "INTEGER DEFAULT 0");
 
 
@@ -169,7 +171,7 @@ seedContentBlock("about", {
   description:
     "Corem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.",
   media_text: "Ceritanya Gambar Bahan Bahan Pisang Ijo",
-  images: "[]",
+  image_url: "",
   pill_1: "Pisang Segar Pilihan",
   pill_2: "Santan Lembut",
   pill_3: "Layanan Penuh Perhatian",
@@ -267,8 +269,12 @@ if (db.prepare("SELECT COUNT(*) AS c FROM faqs").get().c === 0) {
   ].forEach((f) => insertFaq.run(f));
 }
 
+// Auto-seed admin user from environment variables.
+// This runs every time the server starts, so it also works on hosts
+// like Railway where the filesystem (and thus this SQLite file) can be
+// reset on every deploy. Set ADMIN_USERNAME and ADMIN_PASSWORD in your
+// hosting provider's environment variables to create/update the admin.
 if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
-  const bcrypt = require("bcrypt");
   const adminUsername = process.env.ADMIN_USERNAME;
   const existingAdmin = db
     .prepare("SELECT id FROM admin_users WHERE username = ?")
