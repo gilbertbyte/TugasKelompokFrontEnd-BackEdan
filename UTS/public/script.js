@@ -9,6 +9,79 @@ $(function () {
     return $("<div>").text(str == null ? "" : str).html();
   }
 
+  function imageList(value) {
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (typeof value !== "string" || !value) return [];
+    try {
+      var parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch (e) {}
+    return [value];
+  }
+
+  function imageSlideshowHtml(value, alt) {
+    var images = imageList(value);
+    if (!images.length) return "";
+    var slides = images.map(function (url, index) {
+      return '<img class="image-slide' + (index === 0 ? ' active' : '') + '" src="' + escapeHtml(url) +
+        '" alt="' + escapeHtml(alt) + '" aria-hidden="' + (index !== 0) + '">';
+    }).join("");
+    var controls = images.length > 1
+      ? '<button class="image-slide-arrow image-slide-prev" type="button" data-direction="-1" aria-label="Gambar sebelumnya">‹</button>' +
+        '<button class="image-slide-arrow image-slide-next" type="button" data-direction="1" aria-label="Gambar berikutnya">›</button>' +
+        '<span class="image-slide-counter" aria-live="polite">1 / ' + images.length + '</span>'
+      : "";
+    return '<div class="image-slideshow">' + slides + controls + '</div>';
+  }
+
+  function imageMediaHtml(value, alt, placeholder) {
+    var images = imageList(value);
+    if (!images.length) {
+      return placeholder ? '<div class="card-media">' + escapeHtml(placeholder) + '</div>' : "";
+    }
+    return '<div class="card-media has-slideshow">' + imageSlideshowHtml(images, alt) + '</div>';
+  }
+
+  function timeToMinutes(value) {
+    var match = String(value || "").match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+    return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+  }
+
+  function storeIsOpen(store) {
+    var opening = timeToMinutes(store.jam_buka);
+    var closing = timeToMinutes(store.jam_tutup);
+    if (opening === null || closing === null || opening === closing) return false;
+    var now = new Date();
+    var current = now.getHours() * 60 + now.getMinutes();
+    return opening < closing
+      ? current >= opening && current < closing
+      : current >= opening || current < closing;
+  }
+
+  function formatTime(value) {
+    var minutes = timeToMinutes(value);
+    if (minutes === null) return "-";
+    var date = new Date();
+    date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+
+  function formatStoreHours(store) {
+    if (timeToMinutes(store.jam_buka) === null || timeToMinutes(store.jam_tutup) === null) return "-";
+    return formatTime(store.jam_buka) + " - " + formatTime(store.jam_tutup);
+  }
+
+  $(document).on("click", ".image-slide-arrow", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $slideshow = $(this).closest(".image-slideshow");
+    var $slides = $slideshow.find(".image-slide");
+    var activeIndex = $slides.index($slides.filter(".active"));
+    var nextIndex = (activeIndex + Number($(this).data("direction")) + $slides.length) % $slides.length;
+    $slides.removeClass("active").attr("aria-hidden", "true").eq(nextIndex).addClass("active").attr("aria-hidden", "false");
+    $slideshow.find(".image-slide-counter").text((nextIndex + 1) + " / " + $slides.length);
+  });
+
   function wishlistBtnHtml(type, id) {
     var isSaved = !!WISHLIST_IDS[type][id];
     return '<button class="wishlist-btn' + (isSaved ? ' saved' : '') + '" data-type="' + type + '" data-id="' + id +
@@ -61,20 +134,18 @@ $(function () {
   function renderTokoPopuler(list) {
     var $grid = $("#tokoPopulerGrid").empty();
     list.forEach(function (t) {
-      var buka = t.status === "Buka";
+      var buka = storeIsOpen(t);
       var statusClass = buka ? "status-open" : "status-closed";
       var statusText = buka ? "Buka sekarang" : "Tutup";
-      var media = t.image_url
-        ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-        : '<div class="card-media">Ceritanya gambar lokasi</div>';
+      var media = imageMediaHtml(t.image_url, t.nama, "Ceritanya gambar lokasi");
       $grid.append(
         '<div class="store-card" data-store-id="' + t.id + '">' +
           media +
           '<div class="card-body">' +
             wishlistBtnHtml("store", t.id) +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
-            '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
-            '<p class="' + statusClass + '">' + statusText + "</p>" +
+            '<p class="meta">Jam Buka: ' + escapeHtml(formatStoreHours(t)) + "</p>" +
+            '<p class="store-status ' + statusClass + '" data-store-status-id="' + t.id + '">' + statusText + "</p>" +
             '<span class="rating">★ ' + t.rating + "</span>" +
           "</div>" +
         "</div>"
@@ -85,9 +156,7 @@ $(function () {
   function renderMenu(list) {
     var $grid = $("#menuGrid").empty();
     list.forEach(function (m) {
-      var media = m.image_url
-        ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
-        : '<div class="card-media">Ceritanya gambar Menu</div>';
+      var media = imageMediaHtml(m.image_url, m.nama, "Ceritanya gambar Menu");
 
       var storeInfo = m.store_nama
         ? '<p class="menu-store-info">Tersedia di: <strong>' + escapeHtml(m.store_nama) + '</strong></p>' +
@@ -112,11 +181,10 @@ $(function () {
   function renderTokoHasil(list) {
     var $grid = $("#tokoHasilGrid").empty();
     list.forEach(function (t) {
-      var buka = t.status === "Buka";
+      var buka = storeIsOpen(t);
       var statusClass = buka ? "status-open" : "status-closed";
-      var media = t.image_url
-        ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-        : "";
+      var statusText = buka ? "Buka" : "Tutup";
+      var media = imageMediaHtml(t.image_url, t.nama, "");
       $grid.append(
         '<div class="store-card" data-store-id="' + t.id + '">' +
           media +
@@ -124,8 +192,8 @@ $(function () {
             wishlistBtnHtml("store", t.id) +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
-            '<p class="meta">Jarak: ' + escapeHtml(t.jarak || "-") + "</p>" +
-            '<p class="' + statusClass + '">' + escapeHtml(t.status) + " &middot; " + escapeHtml(t.jam_buka || "") + "</p>" +
+            '<p class="meta">Jam Buka: ' + escapeHtml(formatStoreHours(t)) + "</p>" +
+            '<p class="store-status ' + statusClass + '" data-store-status-id="' + t.id + '">' + statusText + "</p>" +
             '<span class="rating">★ ' + t.rating + " (" + (t.ulasan_count || 0) + " ulasan)</span><br>" +
             '<a href="#" class="link-arrow" style="margin-top:10px;display:inline-block;">Lihat Detail</a>' +
           "</div>" +
@@ -142,6 +210,10 @@ $(function () {
       .done(function (data) {
         STATE.stores = data.stores || [];
         STATE.menu = data.menu || [];
+        var about = (data.content && data.content.about) || {};
+        var aboutImages = about.images || about.image_url;
+        var aboutMedia = imageSlideshowHtml(aboutImages, about.heading || "Tentang platform") || escapeHtml(about.media_text || "");
+        $("#tentang .media-frame").toggleClass("has-slideshow", imageList(aboutImages).length > 0).html(aboutMedia);
         renderTokoPopuler(STATE.stores.slice(0, 3));
         renderTokoHasil(STATE.stores);
         renderMenu(STATE.menu);
@@ -178,15 +250,13 @@ $(function () {
       var matchKota = !kota || (t.alamat || "").toLowerCase().indexOf(kota) !== -1;
       var matchStatus =
         status === "Semua Status" ||
-        (status === "Buka" && t.status === "Buka") ||
-        (status === "Tutup" && t.status === "Tutup");
+        (status === "Buka" && storeIsOpen(t)) ||
+        (status === "Tutup" && !storeIsOpen(t));
       return matchNama && matchKota && matchStatus;
     });
 
     if (sort === "Rating Tertinggi") {
       filtered.sort(function (a, b) { return b.rating - a.rating; });
-    } else if (sort === "Jarak Terdekat") {
-      filtered.sort(function (a, b) { return parseFloat(a.jarak) - parseFloat(b.jarak); });
     } else if (sort === "Nama A-Z") {
       filtered.sort(function (a, b) { return a.nama.localeCompare(b.nama); });
     }
@@ -198,6 +268,19 @@ $(function () {
     e.preventDefault();
     applyFilter();
   });
+
+  window.setInterval(function () {
+    if (!STATE.stores.length) return;
+    renderTokoPopuler(STATE.stores.slice(0, 3));
+    applyFilter();
+    var detailStore = findStoreById($("#storeDetailStatus").attr("data-store-id"));
+    if (detailStore) {
+      var isOpen = storeIsOpen(detailStore);
+      $("#storeDetailStatus")
+        .attr("class", "detail-status " + (isOpen ? "status-open" : "status-closed"))
+        .text(isOpen ? "Buka sekarang" : "Tutup");
+    }
+  }, 60000);
 
   /* ---------- Add to cart feedback ---------- */
 
@@ -548,21 +631,19 @@ $(function () {
     if (!store) return;
 
     $("#storeDetailHero").html(
-      store.image_url
-        ? '<img src="' + escapeHtml(store.image_url) + '" alt="' + escapeHtml(store.nama) + '">'
-        : '<div class="detail-hero-placeholder">Ceritanya Gambar Toko</div>'
+      imageSlideshowHtml(store.image_url, store.nama) || '<div class="detail-hero-placeholder">Ceritanya Gambar Toko</div>'
     );
 
-    var buka = store.status === "Buka";
+    var buka = storeIsOpen(store);
     $("#storeDetailStatus")
       .attr("class", "detail-status " + (buka ? "status-open" : "status-closed"))
+      .attr("data-store-id", store.id)
       .text(buka ? "Buka sekarang" : "Tutup");
     $("#storeDetailNama").text(store.nama);
     $("#storeDetailAlamat").text(store.alamat || "-");
     $("#storeDetailRating").html("★ " + (store.rating || 0));
     $("#storeDetailUlasan").text((store.ulasan_count || 0) + " ulasan");
-    $("#storeDetailJam").text(store.jam_buka || "-");
-    $("#storeDetailJarak").text(store.jarak || "-");
+    $("#storeDetailJam").text(formatStoreHours(store));
 
     var storeMenus = STATE.menu.filter(function (m) {
       return String(m.store_id) === String(store.id);
@@ -574,9 +655,7 @@ $(function () {
       storeMenus.forEach(function (m) {
         $list.append(
           '<div class="mini-menu-card" data-menu-id="' + m.id + '">' +
-            (m.image_url
-              ? '<img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '">'
-              : '<div class="mini-menu-img-placeholder"></div>') +
+            (imageSlideshowHtml(m.image_url, m.nama) || '<div class="mini-menu-img-placeholder"></div>') +
             '<div class="mini-menu-info">' +
               "<h5>" + escapeHtml(m.nama) + "</h5>" +
               '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
@@ -598,9 +677,7 @@ $(function () {
     if (!menu) return;
 
     $("#menuDetailHero").html(
-      menu.image_url
-        ? '<img src="' + escapeHtml(menu.image_url) + '" alt="' + escapeHtml(menu.nama) + '">'
-        : '<div class="detail-hero-placeholder">Ceritanya Gambar Menu</div>'
+      imageSlideshowHtml(menu.image_url, menu.nama) || '<div class="detail-hero-placeholder">Ceritanya Gambar Menu</div>'
     );
     $("#menuDetailNama").text(menu.nama);
     $("#menuDetailHarga").text(menu.harga || "");

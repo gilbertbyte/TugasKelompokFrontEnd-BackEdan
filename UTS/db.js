@@ -43,9 +43,8 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nama TEXT NOT NULL,
     alamat TEXT,
-    jarak TEXT,
     jam_buka TEXT,
-    status TEXT DEFAULT 'Buka',
+    jam_tutup TEXT,
     rating REAL DEFAULT 0,
     ulasan_count INTEGER DEFAULT 0,
     sort_order INTEGER DEFAULT 0,
@@ -117,13 +116,39 @@ function ensureColumn(table, column, definition) {
   }
 }
 
-ensureColumn("stores", "jarak", "TEXT");
+ensureColumn("stores", "jam_tutup", "TEXT");
 ensureColumn("stores", "image_url", "TEXT");
 ensureColumn("stores", "ulasan_count", "INTEGER DEFAULT 0");
 ensureColumn("stores", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("menu_items", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("menu_items", "store_id", "INTEGER REFERENCES stores(id)");
 ensureColumn("menu_items", "image_url", "TEXT");
+
+const updateStoreHours = db.prepare("UPDATE stores SET jam_buka = ?, jam_tutup = ? WHERE id = ?");
+db.prepare("SELECT id, jam_buka, jam_tutup FROM stores").all().forEach((store) => {
+  if (!store.jam_buka || store.jam_tutup) return;
+  const range = String(store.jam_buka).match(/^\s*(\d{1,2})[:.](\d{2})\s*[-\u2013\u2014]\s*(\d{1,2})[:.](\d{2})\s*$/);
+  if (range) {
+    updateStoreHours.run(
+      `${range[1].padStart(2, "0")}:${range[2]}`,
+      `${range[3].padStart(2, "0")}:${range[4]}`,
+      store.id
+    );
+    return;
+  }
+  const openingTime = String(store.jam_buka).match(/^\s*(\d{1,2})[:.](\d{2})\s*$/);
+  if (openingTime) {
+    db.prepare("UPDATE stores SET jam_buka = ? WHERE id = ?").run(
+      `${openingTime[1].padStart(2, "0")}:${openingTime[2]}`,
+      store.id
+    );
+  }
+});
+
+["jarak", "status"].forEach((column) => {
+  const columns = db.prepare("PRAGMA table_info(stores)").all().map((entry) => entry.name);
+  if (columns.includes(column)) db.exec(`ALTER TABLE stores DROP COLUMN ${column}`);
+});
 ensureColumn("testimonials", "stars", "INTEGER DEFAULT 5");
 ensureColumn("testimonials", "sort_order", "INTEGER DEFAULT 0");
 // What the review is actually about: a specific store or a specific menu
@@ -188,6 +213,7 @@ seedContentBlock("about", {
   description:
     "Corem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.",
   media_text: "Ceritanya Gambar Bahan Bahan Pisang Ijo",
+  images: [],
   image_url: "",
   pill_1: "Pisang Segar Pilihan",
   pill_2: "Santan Lembut",
@@ -239,13 +265,13 @@ seedContentBlock("footer", {
 
 if (db.prepare("SELECT COUNT(*) AS c FROM stores").get().c === 0) {
   const insertStore = db.prepare(
-    `INSERT INTO stores (nama, alamat, jarak, jam_buka, status, rating, ulasan_count, sort_order)
-     VALUES (@nama, @alamat, @jarak, @jam_buka, @status, @rating, @ulasan_count, @sort_order)`
+    `INSERT INTO stores (nama, alamat, jam_buka, jam_tutup, rating, ulasan_count, sort_order)
+     VALUES (@nama, @alamat, @jam_buka, @jam_tutup, @rating, @ulasan_count, @sort_order)`
   );
   [
-    { nama: "Es Pisang Ijo Bu Ida", alamat: "Jl. Pengayoman, Makassar", jarak: "1.2 km", jam_buka: "08.00 - 21.00", status: "Buka", rating: 4.8, ulasan_count: 128, sort_order: 1 },
-    { nama: "Pisang Ijo Daeng Sija", alamat: "Jl. Boulevard, Makassar", jarak: "2.4 km", jam_buka: "09.00 - 20.00", status: "Buka", rating: 4.6, ulasan_count: 96, sort_order: 2 },
-    { nama: "Pisang Ijo Ratu Rasa", alamat: "Jl. Sultan Alauddin, Makassar", jarak: "3.1 km", jam_buka: "10.00 - 18.00", status: "Tutup", rating: 4.5, ulasan_count: 54, sort_order: 3 },
+    { nama: "Es Pisang Ijo Bu Ida", alamat: "Jl. Pengayoman, Makassar", jam_buka: "08:00", jam_tutup: "21:00", rating: 4.8, ulasan_count: 128, sort_order: 1 },
+    { nama: "Pisang Ijo Daeng Sija", alamat: "Jl. Boulevard, Makassar", jam_buka: "09:00", jam_tutup: "20:00", rating: 4.6, ulasan_count: 96, sort_order: 2 },
+    { nama: "Pisang Ijo Ratu Rasa", alamat: "Jl. Sultan Alauddin, Makassar", jam_buka: "10:00", jam_tutup: "18:00", rating: 4.5, ulasan_count: 54, sort_order: 3 },
   ].forEach((s) => insertStore.run(s));
 }
 

@@ -18,8 +18,7 @@ router.get("/api/site-content", (req, res) => {
     menu_items.*,
     stores.id AS store_id,
     stores.nama AS store_nama,
-    stores.alamat AS store_alamat,
-    stores.status AS store_status
+    stores.alamat AS store_alamat
   FROM menu_items
   LEFT JOIN stores ON stores.id = menu_items.store_id
   ORDER BY menu_items.sort_order ASC, menu_items.id ASC
