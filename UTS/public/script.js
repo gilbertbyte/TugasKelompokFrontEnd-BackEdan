@@ -151,6 +151,7 @@ $(function () {
           '<a href="#" class="link-arrow menu-toko-link" data-store-id="' + m.store_id + '">Lihat Toko Ini</a>'
         : '<p class="menu-store-info">Toko belum ditentukan</p>';
 
+<<<<<<< HEAD
       $grid.append(
         '<div class="menu-card">' +
           media +
@@ -163,6 +164,19 @@ $(function () {
           "</div>" +
         "</div>"
       );
+=======
+        $grid.append(
+          '<div class="menu-card">' +
+            media +
+            '<div class="card-body">' +
+              "<h3>" + escapeHtml(m.nama) + "</h3>" +
+              '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
+              '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
+              storeInfo +
+            "</div>" +
+          "</div>"
+        );
+>>>>>>> e487ff92e583c78e66c7957557887bc7c38295de
     });
   }
 
