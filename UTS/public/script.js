@@ -100,9 +100,12 @@ $(function () {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
       var statusText = buka ? "Buka sekarang" : "Tutup";
+      var media = t.image_url
+        ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+        : '<div class="card-media">Ceritanya gambar lokasi</div>';
       $grid.append(
         '<div class="store-card">' +
-          '<div class="card-media">Ceritanya gambar lokasi</div>' +
+          media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
@@ -119,9 +122,15 @@ $(function () {
     list.forEach(function (m) {
       var media = m.image_url
         ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
+<<<<<<< HEAD
            : '<div class="card-media">Ceritanya gambar Menu</div>';
            $grid.append(
           '<div class="menu-card">' +
+=======
+        : '<div class="card-media">Ceritanya gambar Menu</div>';
+      $grid.append(
+        '<div class="menu-card">' +
+>>>>>>> aeb04b4f47e28276c286a7af9c55de762fec8a2f
           media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(m.nama) + "</h3>" +
@@ -154,8 +163,12 @@ $(function () {
     list.forEach(function (t) {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
+      var media = t.image_url
+        ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+        : "";
       $grid.append(
         '<div class="store-card">' +
+          media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
