@@ -1,6 +1,7 @@
 $(function () {
 
   var STATE = { stores: [], menu: [] };
+  var WISHLIST_IDS = { menu: {}, store: {} };
 
   /* ---------- Helpers ---------- */
 
@@ -8,12 +9,52 @@ $(function () {
     return $("<div>").text(str == null ? "" : str).html();
   }
 
-  // STUB: belum ada backend/handler wishlist beneran.
-  // Tombolnya tampil tapi belum nyimpen apa-apa - tinggal isi function ini
-  // kalau nanti mau bikin fitur wishlist beneran (butuh route API + tabel baru).
   function wishlistBtnHtml(type, id) {
-    return '<button class="wishlist-btn" data-type="' + type + '" data-id="' + id + '" title="Simpan ke wishlist" type="button">♡</button>';
+    var isSaved = !!WISHLIST_IDS[type][id];
+    return '<button class="wishlist-btn' + (isSaved ? ' saved' : '') + '" data-type="' + type + '" data-id="' + id +
+      '" title="' + (isSaved ? "Hapus dari List Aku" : "Simpan ke List Aku") + '" type="button">' +
+      (isSaved ? "♥" : "♡") + "</button>";
   }
+
+  /* ---------- Wishlist ("List yang pengen kamu coba") ---------- */
+
+  function loadWishlistIds() {
+    $.getJSON("/api/wishlist/ids")
+      .done(function (rows) {
+        WISHLIST_IDS = { menu: {}, store: {} };
+        rows.forEach(function (r) {
+          WISHLIST_IDS[r.item_type][r.item_id] = true;
+        });
+        renderTokoPopuler(STATE.stores.slice(0, 3));
+        renderTokoHasil(STATE.stores);
+        renderMenu(STATE.menu);
+      });
+  }
+
+  $(document).on("click", ".wishlist-btn", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!currentUser) {
+      openAuthModal("login");
+      return;
+    }
+
+    var type = $(this).data("type");
+    var id = $(this).data("id");
+    var isSaved = !!WISHLIST_IDS[type][id];
+
+    if (isSaved) {
+      $.ajax({ url: "/api/wishlist/" + type + "/" + id, method: "DELETE" }).done(loadWishlistIds);
+    } else {
+      $.ajax({
+        url: "/api/wishlist",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ item_type: type, item_id: id }),
+      }).done(loadWishlistIds);
+    }
+  });
 
   /* ---------- Renderers ---------- */
 
@@ -351,10 +392,17 @@ $(function () {
             $('<button class="btn btn-outline-light" id="logoutBtn">Logout</button>')
           )
       );
+      $("#navWishlist").show();
+      loadWishlistIds();
     } else {
       $area.append(
         '<button class="btn btn-outline-light" id="loginBtn">Login / Sign In</button>'
       );
+      $("#navWishlist").hide();
+      WISHLIST_IDS = { menu: {}, store: {} };
+      renderTokoPopuler(STATE.stores.slice(0, 3));
+      renderTokoHasil(STATE.stores);
+      renderMenu(STATE.menu);
     }
   }
 

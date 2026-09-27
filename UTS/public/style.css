@@ -236,6 +236,16 @@ p{margin:0 0 8px;}
   z-index:2;
 }
 .wishlist-btn:hover{background:var(--pink);}
+.wishlist-btn.saved{background:var(--pink-text);color:#fff;border-color:var(--pink-text);}
+
+.user-dropdown{display:none;align-items:center;gap:10px;}
+.user-dropdown.show{display:flex;}
+.user-dropdown-info{display:flex;align-items:center;gap:8px;}
+.user-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--green-dark);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:600;
+}
 
 /* Menu store info */
 .menu-store-info{font-size:0.8rem;color:var(--text-muted);margin-bottom:4px;}
