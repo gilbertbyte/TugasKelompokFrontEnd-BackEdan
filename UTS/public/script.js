@@ -1,8 +1,7 @@
 $(function () {
 
   var STATE = { stores: [], menu: [], testimonials: [], faqs: [] };
-
-  
+  var currentUser = null;
 
   $.get("/api/site-content")
     .done(function (data) {
@@ -22,7 +21,14 @@ $(function () {
       console.error("Could not load site content from the server.");
     });
 
-  
+  function firstImage(raw) {
+    var arr = raw;
+    if (typeof raw === "string" && raw) {
+      try { arr = JSON.parse(raw); } catch (e) { arr = []; }
+    }
+    if (!Array.isArray(arr)) return null;
+    return arr[0] || null;
+  }
 
   function applyContent(c) {
     if (c.site) {
@@ -33,7 +39,6 @@ $(function () {
       $("#heroBadge").text(c.hero.badge);
       $("#heroHeading").text(c.hero.heading);
       $("#heroSubheading").text(c.hero.subheading);
-      $("#heroSearchInput").attr("placeholder", c.hero.search_placeholder);
       $("#heroCtaPrimary").text(c.hero.cta_primary);
       $("#heroCtaSecondary").text(c.hero.cta_secondary);
     }
@@ -47,9 +52,10 @@ $(function () {
       $("#menuSectionSub").text(c.menu_section.subheading);
     }
     if (c.about) {
-      if (c.about.image_url) {
+      var aboutImg = firstImage(c.about.images);
+      if (aboutImg) {
         $("#aboutMediaText").parent().html(
-          '<img src="' + escapeHtml(c.about.image_url) + '" alt="Tentang Pisang Ijo" style="width:100%;height:100%;object-fit:cover;border-radius:24px;">'
+          '<img src="' + escapeHtml(aboutImg) + '" alt="Tentang Pisang Ijo" style="width:100%;height:100%;object-fit:cover;border-radius:24px;">'
         );
       } else {
         $("#aboutMediaText").text(c.about.media_text);
@@ -98,17 +104,19 @@ $(function () {
     }
   }
 
-  
-
   function renderTokoPopuler(list) {
     var $grid = $("#tokoPopulerGrid").empty();
     list.forEach(function (t) {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
       var statusText = buka ? "Buka sekarang" : "Tutup";
+      var img = firstImage(t.images);
+      var media = img
+        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+        : '<div class="card-media">Ceritanya gambar lokasi</div>';
       $grid.append(
-        '<div class="store-card">' +
-          '<div class="card-media">Ceritanya gambar lokasi</div>' +
+        '<div class="store-card" data-store-id="' + t.id + '">' +
+          media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
@@ -123,9 +131,16 @@ $(function () {
   function renderMenu(list) {
     var $grid = $("#menuGrid").empty();
     list.forEach(function (m) {
-      var media = m.image_url
-        ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
+      var img = firstImage(m.images);
+      var media = img
+        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(m.nama) + '"></div>'
         : '<div class="card-media">Ceritanya gambar Menu</div>';
+
+      var storeInfo = m.store_nama
+        ? '<p class="menu-store-info">Tersedia di: <strong>' + escapeHtml(m.store_nama) + '</strong></p>' +
+          '<a href="#" class="link-arrow menu-toko-link" data-store-id="' + m.store_id + '">Lihat Toko Ini</a>'
+        : '<p class="menu-store-info">Toko belum ditentukan</p>';
+
       $grid.append(
         '<div class="menu-card">' +
           media +
@@ -133,6 +148,7 @@ $(function () {
             "<h3>" + escapeHtml(m.nama) + "</h3>" +
             '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
             '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
+            storeInfo +
             '<button class="add-btn" title="Tambah ke keranjang">+</button>' +
           "</div>" +
         "</div>"
@@ -160,8 +176,13 @@ $(function () {
     list.forEach(function (t) {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
+      var img = firstImage(t.images);
+      var media = img
+        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+        : "";
       $grid.append(
-        '<div class="store-card">' +
+        '<div class="store-card" data-store-id="' + t.id + '">' +
+          media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
@@ -193,18 +214,6 @@ $(function () {
   function escapeHtml(str) {
     return $("<div>").text(str == null ? "" : str).html();
   }
-
-  
-
-  $("#heroSearchForm").on("submit", function (e) {
-    e.preventDefault();
-    var q = $("#heroSearchInput").val().trim();
-    $("#filterNama").val(q);
-    $("html, body").animate({ scrollTop: $("#cari-toko").offset().top - 80 }, 400);
-    applyFilter();
-  });
-
-  
 
   function applyFilter() {
     var nama = $("#filterNama").val().trim().toLowerCase();
@@ -238,15 +247,33 @@ $(function () {
     applyFilter();
   });
 
-  
-
   $(document).on("click", ".add-btn", function () {
     var $btn = $(this);
     $btn.text("✓");
     setTimeout(function () { $btn.text("+"); }, 900);
   });
 
-  
+  $(document).on("click", ".menu-toko-link", function (e) {
+    e.preventDefault();
+    var storeId = $(this).data("store-id");
+    highlightStore(storeId);
+  });
+
+  function highlightStore(storeId) {
+    $("html, body").animate(
+      { scrollTop: $("#toko-populer").offset().top - 80 },
+      400,
+      function () {
+        var $card = $('.store-card[data-store-id="' + storeId + '"]');
+        if ($card.length) {
+          $card.addClass("store-highlight");
+          setTimeout(function () {
+            $card.removeClass("store-highlight");
+          }, 2000);
+        }
+      }
+    );
+  }
 
   function bindAccordion() {
     $(".accordion-trigger").off("click").on("click", function () {
@@ -262,6 +289,10 @@ $(function () {
       }
     });
   }
+
+  $("#tulisUlasanBtn").on("click", function () {
+    alert("Demo: form Tulis Ulasan akan tampil di sini.");
+  });
 
   
 
@@ -282,6 +313,7 @@ $(function () {
   }
 
   function loginAs(nama, email) {
+    currentUser = nama;
     $("#loginBtn").hide();
     $("#userAvatar").text(nama.charAt(0).toUpperCase());
     $("#userDropdownName").text(nama);
@@ -290,9 +322,19 @@ $(function () {
   }
 
   function logout() {
+    currentUser = null;
     $("#userDropdown").removeClass("show");
     $("#loginBtn").show();
   }
+
+  function checkUserSession() {
+    $.get("/api/user/me").done(function (data) {
+      if (data.loggedIn) {
+        loginAs(data.nama, data.email || "");
+      }
+    });
+  }
+  checkUserSession();
 
   $("#loginBtn").on("click", function () {
     openModal("login");
@@ -316,38 +358,58 @@ $(function () {
 
   $("#loginForm").on("submit", function (e) {
     e.preventDefault();
-    var email = $("#loginEmail").val().trim();
-    var pass = $("#loginPassword").val();
-    if (!email || !pass) {
-      $("#loginError").text("Email dan password wajib diisi.");
-      return;
-    }
-    loginAs(email.split("@")[0], email);
-    closeModal();
+    $("#loginError").text("");
+    $.ajax({
+      url: "/api/user/login",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        email: $("#loginEmail").val(),
+        password: $("#loginPassword").val(),
+      }),
+    })
+      .done(function (data) {
+        loginAs(data.nama, data.email || "");
+        closeModal();
+        $("#loginForm")[0].reset();
+      })
+      .fail(function (xhr) {
+        $("#loginError").text((xhr.responseJSON && xhr.responseJSON.error) || "Login gagal.");
+      });
   });
 
   $("#registerForm").on("submit", function (e) {
     e.preventDefault();
-    var nama = $("#registerNama").val().trim();
-    var email = $("#registerEmail").val().trim();
-    var pass = $("#registerPassword").val();
-    if (!nama || !email || pass.length < 8) {
-      $("#registerError").text("Lengkapi semua kolom (password minimal 8 karakter).");
-      return;
-    }
-    loginAs(nama, email);
-    closeModal();
+    $("#registerError").text("");
+    $.ajax({
+      url: "/api/user/register",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        nama: $("#registerNama").val(),
+        email: $("#registerEmail").val(),
+        password: $("#registerPassword").val(),
+      }),
+    })
+      .done(function (data) {
+        loginAs(data.nama, data.email || "");
+        closeModal();
+        $("#registerForm")[0].reset();
+      })
+      .fail(function (xhr) {
+        $("#registerError").text((xhr.responseJSON && xhr.responseJSON.error) || "Registrasi gagal.");
+      });
   });
 
   $("#switchAccountBtn").on("click", function () {
-    logout();
-    openModal("login");
+    $.post("/api/user/logout").always(function () {
+      logout();
+      openModal("login");
+    });
   });
 
-  $("#logoutUserBtn").on("click", logout);
-
-  $("#tulisUlasanBtn").on("click", function () {
-    alert("Demo: form Tulis Ulasan akan tampil di sini.");
+  $("#logoutUserBtn").on("click", function () {
+    $.post("/api/user/logout").always(logout);
   });
 
 });

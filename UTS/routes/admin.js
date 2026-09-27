@@ -179,7 +179,7 @@ registerListCrud({
     { name: "rating", default: 0 },
     { name: "ulasan_count", default: 0 },
     { name: "sort_order", default: 0 },
-    { name: "image_url", default: "" },
+    { name: "images", default: "[]" },
   ],
 });
 
@@ -192,7 +192,7 @@ registerListCrud({
     { name: "deskripsi", default: "" },
     { name: "harga", default: "" },
     { name: "sort_order", default: 0 },
-    { name: "image_url", default: "" },
+    { name: "images", default: "[]" },
     { name: "store_id", default: null },
   ],
 });
