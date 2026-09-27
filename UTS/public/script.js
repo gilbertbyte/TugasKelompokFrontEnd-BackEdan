@@ -1,6 +1,8 @@
 $(function () {
 
   var STATE = { stores: [], menu: [], testimonials: [], faqs: [] };
+  var WISHLIST_IDS = { menu: {}, store: {} };
+  var IS_LOGGED_IN = false;
   var currentUser = null;
 
   $.get("/api/site-content")
@@ -20,6 +22,8 @@ $(function () {
     .fail(function () {
       console.error("Could not load site content from the server.");
     });
+
+  checkLoginStatus();
 
   function firstImage(raw) {
     var arr = raw;
@@ -104,6 +108,11 @@ $(function () {
     }
   }
 
+  function wishlistBtnHtml(type, id) {
+    var isSaved = !!WISHLIST_IDS[type][id];
+    return '<button class="wishlist-btn' + (isSaved ? ' saved' : '') + '" data-type="' + type + '" data-id="' + id + '" title="Simpan ke List">' + (isSaved ? "♥" : "♡") + '</button>';
+  }
+
   function renderTokoPopuler(list) {
     var $grid = $("#tokoPopulerGrid").empty();
     list.forEach(function (t) {
@@ -115,7 +124,8 @@ $(function () {
         ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
         : '<div class="card-media">Ceritanya gambar lokasi</div>';
       $grid.append(
-        '<div class="store-card" data-store-id="' + t.id + '">' +
+        '<div class="store-card" data-store-id="' + t.id + '" style="position:relative;">' +
+          wishlistBtnHtml("store", t.id) +
           media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
@@ -143,6 +153,7 @@ $(function () {
 
       $grid.append(
         '<div class="menu-card">' +
+          wishlistBtnHtml("menu", m.id) +
           media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(m.nama) + "</h3>" +
@@ -181,7 +192,8 @@ $(function () {
         ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
         : "";
       $grid.append(
-        '<div class="store-card" data-store-id="' + t.id + '">' +
+        '<div class="store-card" data-store-id="' + t.id + '" style="position:relative;">' +
+          wishlistBtnHtml("store", t.id) +
           media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
@@ -290,12 +302,6 @@ $(function () {
     });
   }
 
-  $("#tulisUlasanBtn").on("click", function () {
-    alert("Demo: form Tulis Ulasan akan tampil di sini.");
-  });
-
-  
-
   function openModal(mode) {
     $("#loginError, #registerError").text("");
     if (mode === "register") {
@@ -313,28 +319,37 @@ $(function () {
   }
 
   function loginAs(nama, email) {
+    IS_LOGGED_IN = true;
     currentUser = nama;
     $("#loginBtn").hide();
     $("#userAvatar").text(nama.charAt(0).toUpperCase());
     $("#userDropdownName").text(nama);
     $("#userDropdownEmail").text(email);
     $("#userDropdown").addClass("show");
+    $("#navWishlist").show();
+    loadWishlistIds();
   }
 
-  function logout() {
+  function logoutUI() {
+    IS_LOGGED_IN = false;
     currentUser = null;
+    WISHLIST_IDS = { menu: {}, store: {} };
     $("#userDropdown").removeClass("show");
     $("#loginBtn").show();
+    $("#navWishlist").hide();
+    renderMenu(STATE.menu);
+    renderTokoPopuler(STATE.stores.slice(0, 3));
+    renderTokoHasil(STATE.stores);
   }
 
-  function checkUserSession() {
-    $.get("/api/user/me").done(function (data) {
-      if (data.loggedIn) {
-        loginAs(data.nama, data.email || "");
-      }
-    });
+  function checkLoginStatus() {
+    $.get("/api/user/me")
+      .done(function (res) {
+        if (res.loggedIn) {
+          loginAs(res.nama, res.email || "");
+        }
+      });
   }
-  checkUserSession();
 
   $("#loginBtn").on("click", function () {
     openModal("login");
@@ -358,58 +373,113 @@ $(function () {
 
   $("#loginForm").on("submit", function (e) {
     e.preventDefault();
-    $("#loginError").text("");
+    var email = $("#loginEmail").val().trim();
+    var pass = $("#loginPassword").val();
+    if (!email || !pass) {
+      $("#loginError").text("Email dan password wajib diisi.");
+      return;
+    }
     $.ajax({
       url: "/api/user/login",
       method: "POST",
       contentType: "application/json",
-      data: JSON.stringify({
-        email: $("#loginEmail").val(),
-        password: $("#loginPassword").val(),
-      }),
+      data: JSON.stringify({ email: email, password: pass }),
     })
-      .done(function (data) {
-        loginAs(data.nama, data.email || "");
+      .done(function (res) {
+        loginAs(res.nama, res.email || "");
         closeModal();
         $("#loginForm")[0].reset();
       })
       .fail(function (xhr) {
-        $("#loginError").text((xhr.responseJSON && xhr.responseJSON.error) || "Login gagal.");
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Login gagal.";
+        $("#loginError").text(msg);
       });
   });
 
   $("#registerForm").on("submit", function (e) {
     e.preventDefault();
-    $("#registerError").text("");
+    var nama = $("#registerNama").val().trim();
+    var email = $("#registerEmail").val().trim();
+    var pass = $("#registerPassword").val();
+    if (!nama || !email || pass.length < 8) {
+      $("#registerError").text("Lengkapi semua kolom (password minimal 8 karakter).");
+      return;
+    }
     $.ajax({
       url: "/api/user/register",
       method: "POST",
       contentType: "application/json",
-      data: JSON.stringify({
-        nama: $("#registerNama").val(),
-        email: $("#registerEmail").val(),
-        password: $("#registerPassword").val(),
-      }),
+      data: JSON.stringify({ nama: nama, email: email, password: pass }),
     })
-      .done(function (data) {
-        loginAs(data.nama, data.email || "");
+      .done(function (res) {
+        loginAs(res.nama, res.email || "");
         closeModal();
         $("#registerForm")[0].reset();
       })
       .fail(function (xhr) {
-        $("#registerError").text((xhr.responseJSON && xhr.responseJSON.error) || "Registrasi gagal.");
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Registrasi gagal.";
+        $("#registerError").text(msg);
       });
   });
 
   $("#switchAccountBtn").on("click", function () {
     $.post("/api/user/logout").always(function () {
-      logout();
+      logoutUI();
       openModal("login");
     });
   });
 
   $("#logoutUserBtn").on("click", function () {
-    $.post("/api/user/logout").always(logout);
+    $.post("/api/user/logout").always(logoutUI);
+  });
+
+  $("#tulisUlasanBtn").on("click", function () {
+    alert("Demo: form Tulis Ulasan akan tampil di sini.");
+  });
+
+  function loadWishlistIds() {
+    $.get("/api/wishlist/ids")
+      .done(function (rows) {
+        WISHLIST_IDS = { menu: {}, store: {} };
+        rows.forEach(function (r) {
+          WISHLIST_IDS[r.item_type][r.item_id] = true;
+        });
+        renderMenu(STATE.menu);
+        renderTokoPopuler(STATE.stores.slice(0, 3));
+        renderTokoHasil(STATE.stores);
+      });
+  }
+
+  $(document).on("click", ".wishlist-btn", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!IS_LOGGED_IN) {
+      openModal("login");
+      return;
+    }
+
+    var $btn = $(this);
+    var type = $btn.data("type");
+    var id = $btn.data("id");
+    var isSaved = !!WISHLIST_IDS[type][id];
+
+    if (isSaved) {
+      $.ajax({ url: "/api/wishlist/" + type + "/" + id, method: "DELETE" }).done(function () {
+        delete WISHLIST_IDS[type][id];
+        loadWishlistIds();
+      });
+    } else {
+      $.ajax({
+        url: "/api/wishlist",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ item_type: type, item_id: id }),
+      }).done(function () {
+        WISHLIST_IDS[type][id] = true;
+        loadWishlistIds();
+      });
+    }
   });
 
 });

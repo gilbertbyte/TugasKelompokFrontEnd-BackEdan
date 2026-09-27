@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>List yang Pengen Kamu Coba | Es Pisang Ijo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo" id="siteLogo">Es Pisang Ijo</a>
+    <nav class="main-nav">
+      <a href="index.html#beranda">Home</a>
+      <a href="index.html#cari-toko">Cari Toko</a>
+      <a href="index.html#menu">Menu</a>
+      <a href="index.html#tentang">About</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="wishlist.html" id="navWishlist" style="display:none;">List Aku</a>
+      <a href="index.html#kontak">Contact</a>
+    </nav>
+
+    <div class="user-menu-wrap" id="userMenuWrap">
+      <button class="btn btn-outline-light" id="loginBtn">Login / Sign In</button>
+      <div class="user-dropdown" id="userDropdown">
+        <div class="user-dropdown-info">
+          <div class="user-avatar" id="userAvatar">?</div>
+          <div class="user-info-text">
+            <div class="user-name" id="userDropdownName">-</div>
+            <div class="user-email" id="userDropdownEmail">-</div>
+          </div>
+        </div>
+        <button id="switchAccountBtn">Ganti Akun</button>
+        <button id="logoutUserBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+<section class="section section-tinted" style="padding-top:56px;">
+  <div class="container">
+    <div class="section-head section-head-center">
+      <span class="eyebrow-mustard">List Aku</span>
+      <h2>List yang Pengen Kamu Coba</h2>
+      <p class="section-sub">Menu dan toko yang sudah kamu simpan untuk dicoba nanti</p>
+    </div>
+
+    <div id="wishlistLoggedOut" style="text-align:center;display:none;">
+      <p style="color:var(--text-muted);margin-bottom:20px;">Kamu perlu login dulu untuk melihat list ini.</p>
+      <button class="btn btn-mustard" id="wishlistLoginBtn">Login / Sign In</button>
+    </div>
+
+    <div id="wishlistLoggedIn" style="display:none;">
+      <h3 style="margin-top:32px;">Menu</h3>
+      <div class="grid grid-4" id="wishlistMenuGrid"></div>
+
+      <h3 style="margin-top:48px;">Toko</h3>
+      <div class="grid grid-3" id="wishlistStoreGrid"></div>
+
+      <p id="wishlistEmpty" style="text-align:center;color:var(--text-muted);display:none;margin-top:24px;">Belum ada yang kamu simpan. Klik ikon hati di menu atau toko favoritmu!</p>
+    </div>
+  </div>
+</section>
+
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <span class="logo light" id="footerLogo">Pisang Ijo</span>
+      <p id="footerTagline">Platform demo untuk menjelajahi menu dan toko es pisang ijo</p>
+      <p class="footer-social" id="footerSocial">Sosial demo : Instagram - TikTok - Facebook</p>
+    </div>
+    <div>
+      <h4>Tautan Cepat</h4>
+      <ul>
+        <li><a href="index.html#menu">Menu</a></li>
+        <li><a href="index.html#cari-toko">Cari Toko</a></li>
+        <li><a href="index.html#tentang">Tentang Kami</a></li>
+        <li><a href="index.html#faq">FAQ</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Bantuan &amp; Kontak</h4>
+      <ul>
+        <li id="footerHelpEmail">halo@pisangijokita.com</li>
+        <li id="footerHelpWhatsapp">WhatsApp CS demo: +62 800 0000 0000</li>
+      </ul>
+    </div>
+    <div>
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#" id="footerLegalTerms">Syarat &amp; Ketentuan</a></li>
+        <li><a href="#" id="footerLegalPrivacy">Kebijakan Privasi</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <p id="footerCopyright">&copy; 2026 Pisang Ijo</p>
+  </div>
+</footer>
+
+
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <button class="modal-close" id="authModalClose">&times;</button>
+
+    <div id="loginFormWrap">
+      <h3>Login</h3>
+      <form id="loginForm">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" required>
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required>
+        </div>
+        <p class="form-error" id="loginError"></p>
+        <button type="submit" class="btn btn-mustard" style="width:100%;">Login</button>
+      </form>
+      <p class="modal-switch">Belum punya akun? <a href="#" id="showRegister">Daftar</a></p>
+    </div>
+
+    <div id="registerFormWrap" style="display:none;">
+      <h3>Daftar Akun</h3>
+      <form id="registerForm">
+        <div class="field">
+          <label for="registerNama">Nama</label>
+          <input type="text" id="registerNama" required>
+        </div>
+        <div class="field">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" required>
+        </div>
+        <div class="field">
+          <label for="registerPassword">Password (min 8 karakter)</label>
+          <input type="password" id="registerPassword" required minlength="8">
+        </div>
+        <p class="form-error" id="registerError"></p>
+        <button type="submit" class="btn btn-mustard" style="width:100%;">Daftar</button>
+      </form>
+      <p class="modal-switch">Sudah punya akun? <a href="#" id="showLogin">Login</a></p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="wishlist.js"></script>
+</body>
+</html>
