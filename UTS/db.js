@@ -117,12 +117,12 @@ function ensureColumn(table, column, definition) {
 }
 
 ensureColumn("stores", "jarak", "TEXT");
-ensureColumn("stores", "image_url", "TEXT");
+ensureColumn("stores", "images", "TEXT DEFAULT '[]'");
 ensureColumn("stores", "ulasan_count", "INTEGER DEFAULT 0");
 ensureColumn("stores", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("menu_items", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("menu_items", "store_id", "INTEGER REFERENCES stores(id)");
-ensureColumn("menu_items", "image_url", "TEXT");
+ensureColumn("menu_items", "images", "TEXT DEFAULT '[]'");
 ensureColumn("testimonials", "stars", "INTEGER DEFAULT 5");
 ensureColumn("testimonials", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("faqs", "sort_order", "INTEGER DEFAULT 0");
@@ -169,7 +169,7 @@ seedContentBlock("about", {
   description:
     "Corem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.",
   media_text: "Ceritanya Gambar Bahan Bahan Pisang Ijo",
-  image_url: "",
+  images: "[]",
   pill_1: "Pisang Segar Pilihan",
   pill_2: "Santan Lembut",
   pill_3: "Layanan Penuh Perhatian",

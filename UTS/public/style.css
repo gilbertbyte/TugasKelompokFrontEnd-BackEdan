@@ -213,6 +213,11 @@ p{margin:0 0 8px;}
   display:flex;align-items:center;justify-content:center;
   color:var(--green-deep);font-weight:600;font-size:0.85rem;text-align:center;padding:12px;
 }
+.store-card .card-media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
 .store-card .card-body{padding:18px;}
 .store-card h3{font-size:1.05rem;margin-bottom:4px;}
 .store-card .meta{font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;}
@@ -222,6 +227,14 @@ p{margin:0 0 8px;}
 }
 .status-open{color:var(--green-mid);font-weight:600;font-size:.85rem;}
 .status-closed{color:var(--pink-text);font-weight:600;font-size:.85rem;}
+
+/* Highlight sesaat ketika card toko dituju dari link "Lihat Toko Ini" di card menu */
+.store-card.store-highlight{
+  outline:3px solid var(--mustard);
+  outline-offset:2px;
+  box-shadow:0 0 0 6px rgba(232,163,61,.25);
+  transition:outline-color .3s ease, box-shadow .3s ease;
+}
 
 
 .menu-card{
@@ -246,6 +259,7 @@ p{margin:0 0 8px;}
 .menu-card h3{font-size:1rem;margin-bottom:2px;}
 .menu-card .desc{font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;}
 .menu-card .price{color:var(--pink-text);font-weight:700;font-size:0.95rem;}
+.menu-card .menu-store-info{font-size:0.8rem;color:var(--text-muted);margin-bottom:6px;}
 .add-btn{
   position:absolute;right:14px;bottom:14px;
   width:34px;height:34px;border-radius:50%;

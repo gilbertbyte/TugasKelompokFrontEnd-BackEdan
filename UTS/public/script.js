@@ -3,8 +3,7 @@ $(function () {
   var STATE = { stores: [], menu: [], testimonials: [], faqs: [] };
   var WISHLIST_IDS = { menu: {}, store: {} };
   var IS_LOGGED_IN = false;
-
-  
+  var currentUser = null;
 
   $.get("/api/site-content")
     .done(function (data) {
@@ -26,7 +25,14 @@ $(function () {
 
   checkLoginStatus();
 
-  
+  function firstImage(raw) {
+    var arr = raw;
+    if (typeof raw === "string" && raw) {
+      try { arr = JSON.parse(raw); } catch (e) { arr = []; }
+    }
+    if (!Array.isArray(arr)) return null;
+    return arr[0] || null;
+  }
 
   function applyContent(c) {
     if (c.site) {
@@ -37,7 +43,6 @@ $(function () {
       $("#heroBadge").text(c.hero.badge);
       $("#heroHeading").text(c.hero.heading);
       $("#heroSubheading").text(c.hero.subheading);
-      $("#heroSearchInput").attr("placeholder", c.hero.search_placeholder);
       $("#heroCtaPrimary").text(c.hero.cta_primary);
       $("#heroCtaSecondary").text(c.hero.cta_secondary);
     }
@@ -51,9 +56,10 @@ $(function () {
       $("#menuSectionSub").text(c.menu_section.subheading);
     }
     if (c.about) {
-      if (c.about.image_url) {
+      var aboutImg = firstImage(c.about.images);
+      if (aboutImg) {
         $("#aboutMediaText").parent().html(
-          '<img src="' + escapeHtml(c.about.image_url) + '" alt="Tentang Pisang Ijo" style="width:100%;height:100%;object-fit:cover;border-radius:24px;">'
+          '<img src="' + escapeHtml(aboutImg) + '" alt="Tentang Pisang Ijo" style="width:100%;height:100%;object-fit:cover;border-radius:24px;">'
         );
       } else {
         $("#aboutMediaText").text(c.about.media_text);
@@ -102,8 +108,6 @@ $(function () {
     }
   }
 
-  
-
   function wishlistBtnHtml(type, id) {
     var isSaved = !!WISHLIST_IDS[type][id];
     return '<button class="wishlist-btn' + (isSaved ? ' saved' : '') + '" data-type="' + type + '" data-id="' + id + '" title="Simpan ke List">' + (isSaved ? "♥" : "♡") + '</button>';
@@ -115,14 +119,15 @@ $(function () {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
       var statusText = buka ? "Buka sekarang" : "Tutup";
-      var media = t.image_url
-      ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-      : '<div class="card-media">Ceritanya gambar lokasi</div>';
+      var img = firstImage(t.images);
+      var media = img
+        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+        : '<div class="card-media">Ceritanya gambar lokasi</div>';
       $grid.append(
-        '<div class="store-card" style="position:relative;">' +
-        wishlistBtnHtml("store", t.id) +
-        media +
-         '<div class="card-body">' +
+        '<div class="store-card" data-store-id="' + t.id + '" style="position:relative;">' +
+          wishlistBtnHtml("store", t.id) +
+          media +
+          '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
             '<p class="' + statusClass + '">' + statusText + "</p>" +
@@ -136,9 +141,16 @@ $(function () {
   function renderMenu(list) {
     var $grid = $("#menuGrid").empty();
     list.forEach(function (m) {
-      var media = m.image_url
-        ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
+      var img = firstImage(m.images);
+      var media = img
+        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(m.nama) + '"></div>'
         : '<div class="card-media">Ceritanya gambar Menu</div>';
+
+      var storeInfo = m.store_nama
+        ? '<p class="menu-store-info">Tersedia di: <strong>' + escapeHtml(m.store_nama) + '</strong></p>' +
+          '<a href="#" class="link-arrow menu-toko-link" data-store-id="' + m.store_id + '">Lihat Toko Ini</a>'
+        : '<p class="menu-store-info">Toko belum ditentukan</p>';
+
       $grid.append(
         '<div class="menu-card">' +
           wishlistBtnHtml("menu", m.id) +
@@ -147,6 +159,7 @@ $(function () {
             "<h3>" + escapeHtml(m.nama) + "</h3>" +
             '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
             '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
+            storeInfo +
             '<button class="add-btn" title="Tambah ke keranjang">+</button>' +
           "</div>" +
         "</div>"
@@ -174,9 +187,14 @@ $(function () {
     list.forEach(function (t) {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
+      var img = firstImage(t.images);
+      var media = img
+        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+        : "";
       $grid.append(
-        '<div class="store-card" style="position:relative;">' +
+        '<div class="store-card" data-store-id="' + t.id + '" style="position:relative;">' +
           wishlistBtnHtml("store", t.id) +
+          media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
@@ -208,18 +226,6 @@ $(function () {
   function escapeHtml(str) {
     return $("<div>").text(str == null ? "" : str).html();
   }
-
-  
-
-  $("#heroSearchForm").on("submit", function (e) {
-    e.preventDefault();
-    var q = $("#heroSearchInput").val().trim();
-    $("#filterNama").val(q);
-    $("html, body").animate({ scrollTop: $("#cari-toko").offset().top - 80 }, 400);
-    applyFilter();
-  });
-
-  
 
   function applyFilter() {
     var nama = $("#filterNama").val().trim().toLowerCase();
@@ -253,15 +259,33 @@ $(function () {
     applyFilter();
   });
 
-  
-
   $(document).on("click", ".add-btn", function () {
     var $btn = $(this);
     $btn.text("✓");
     setTimeout(function () { $btn.text("+"); }, 900);
   });
 
-  
+  $(document).on("click", ".menu-toko-link", function (e) {
+    e.preventDefault();
+    var storeId = $(this).data("store-id");
+    highlightStore(storeId);
+  });
+
+  function highlightStore(storeId) {
+    $("html, body").animate(
+      { scrollTop: $("#toko-populer").offset().top - 80 },
+      400,
+      function () {
+        var $card = $('.store-card[data-store-id="' + storeId + '"]');
+        if ($card.length) {
+          $card.addClass("store-highlight");
+          setTimeout(function () {
+            $card.removeClass("store-highlight");
+          }, 2000);
+        }
+      }
+    );
+  }
 
   function bindAccordion() {
     $(".accordion-trigger").off("click").on("click", function () {
@@ -277,8 +301,6 @@ $(function () {
       }
     });
   }
-
-  
 
   function openModal(mode) {
     $("#loginError, #registerError").text("");
@@ -298,6 +320,7 @@ $(function () {
 
   function loginAs(nama, email) {
     IS_LOGGED_IN = true;
+    currentUser = nama;
     $("#loginBtn").hide();
     $("#userAvatar").text(nama.charAt(0).toUpperCase());
     $("#userDropdownName").text(nama);
@@ -309,11 +332,11 @@ $(function () {
 
   function logoutUI() {
     IS_LOGGED_IN = false;
+    currentUser = null;
     WISHLIST_IDS = { menu: {}, store: {} };
     $("#userDropdown").removeClass("show");
     $("#loginBtn").show();
     $("#navWishlist").hide();
-    $("#wishlist").hide();
     renderMenu(STATE.menu);
     renderTokoPopuler(STATE.stores.slice(0, 3));
     renderTokoHasil(STATE.stores);
@@ -323,7 +346,7 @@ $(function () {
     $.get("/api/user/me")
       .done(function (res) {
         if (res.loggedIn) {
-          loginAs(res.nama, res.email);
+          loginAs(res.nama, res.email || "");
         }
       });
   }
@@ -363,7 +386,7 @@ $(function () {
       data: JSON.stringify({ email: email, password: pass }),
     })
       .done(function (res) {
-        loginAs(res.nama, res.email);
+        loginAs(res.nama, res.email || "");
         closeModal();
         $("#loginForm")[0].reset();
       })
@@ -389,7 +412,7 @@ $(function () {
       data: JSON.stringify({ nama: nama, email: email, password: pass }),
     })
       .done(function (res) {
-        loginAs(res.nama, res.email);
+        loginAs(res.nama, res.email || "");
         closeModal();
         $("#registerForm")[0].reset();
       })
@@ -400,23 +423,19 @@ $(function () {
   });
 
   $("#switchAccountBtn").on("click", function () {
-    $.post("/api/user/logout", function () {
+    $.post("/api/user/logout").always(function () {
       logoutUI();
       openModal("login");
     });
   });
 
   $("#logoutUserBtn").on("click", function () {
-    $.post("/api/user/logout", function () {
-      logoutUI();
-    });
+    $.post("/api/user/logout").always(logoutUI);
   });
 
   $("#tulisUlasanBtn").on("click", function () {
     alert("Demo: form Tulis Ulasan akan tampil di sini.");
   });
-
-  
 
   function loadWishlistIds() {
     $.get("/api/wishlist/ids")
@@ -428,52 +447,6 @@ $(function () {
         renderMenu(STATE.menu);
         renderTokoPopuler(STATE.stores.slice(0, 3));
         renderTokoHasil(STATE.stores);
-        loadWishlistSection();
-      });
-  }
-
-  function loadWishlistSection() {
-    $.get("/api/wishlist")
-      .done(function (data) {
-        var menu = data.menu || [];
-        var stores = data.stores || [];
-
-        var $menuGrid = $("#wishlistMenuGrid").empty();
-        menu.forEach(function (m) {
-          var media = m.image_url
-            ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
-            : '<div class="card-media">Ceritanya gambar Menu</div>';
-          $menuGrid.append(
-            '<div class="menu-card">' +
-              wishlistBtnHtml("menu", m.id) +
-              media +
-              '<div class="card-body">' +
-                "<h3>" + escapeHtml(m.nama) + "</h3>" +
-                '<p class="desc">' + escapeHtml(m.store_nama ? "Dari: " + m.store_nama : (m.deskripsi || "")) + "</p>" +
-                '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
-              "</div>" +
-            "</div>"
-          );
-        });
-
-        var $storeGrid = $("#wishlistStoreGrid").empty();
-        stores.forEach(function (t) {
-          var media = t.image_url
-            ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-            : '<div class="card-media">Ceritanya gambar lokasi</div>';
-          $storeGrid.append(
-            '<div class="store-card" style="position:relative;">' +
-              wishlistBtnHtml("store", t.id) +
-              media +
-              '<div class="card-body">' +
-                "<h3>" + escapeHtml(t.nama) + "</h3>" +
-                '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
-              "</div>" +
-            "</div>"
-          );
-        });
-
-        $("#wishlistEmpty").toggle(menu.length === 0 && stores.length === 0);
       });
   }
 
@@ -507,10 +480,6 @@ $(function () {
         loadWishlistIds();
       });
     }
-  });
-
-  $("#navWishlist").on("click", function () {
-    $("#wishlist").show();
   });
 
 });
