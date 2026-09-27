@@ -24,11 +24,11 @@ $(function () {
       $("#registerFormWrap").hide();
       $("#loginFormWrap").show();
     }
-    $("#authModal").addClass("active");
+    $("#authModal").addClass("open");
   }
 
   function closeModal() {
-    $("#authModal").removeClass("active");
+    $("#authModal").removeClass("open");
   }
 
   function loginAs(nama, email) {

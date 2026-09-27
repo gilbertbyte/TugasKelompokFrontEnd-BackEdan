@@ -91,6 +91,17 @@ db.exec(`
 
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS wishlist_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    item_type TEXT NOT NULL,
+    item_id INTEGER NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, item_type, item_id)
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS content_blocks (
     key TEXT PRIMARY KEY,
     data TEXT NOT NULL,
