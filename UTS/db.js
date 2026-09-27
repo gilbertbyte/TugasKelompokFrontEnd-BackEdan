@@ -126,6 +126,12 @@ ensureColumn("menu_items", "store_id", "INTEGER REFERENCES stores(id)");
 ensureColumn("menu_items", "image_url", "TEXT");
 ensureColumn("testimonials", "stars", "INTEGER DEFAULT 5");
 ensureColumn("testimonials", "sort_order", "INTEGER DEFAULT 0");
+// What the review is actually about: a specific store or a specific menu
+// item, so reviews don't end up reading like generic "review of the
+// website" text.
+ensureColumn("testimonials", "target_type", "TEXT");
+ensureColumn("testimonials", "target_id", "INTEGER");
+ensureColumn("testimonials", "target_nama", "TEXT");
 
 // Add "approved" moderation column. Testimonials that already existed
 // before this column was added are treated as already-approved (they

@@ -277,6 +277,19 @@
 
     <form id="reviewForm" class="modal-form">
       <div class="field">
+        <label for="reviewTargetType">Ulasan untuk</label>
+        <select id="reviewTargetType">
+          <option value="store">Toko</option>
+          <option value="menu">Menu</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="reviewTargetId">Pilih Toko/Menu</label>
+        <select id="reviewTargetId" required>
+          <option value="">-- Pilih --</option>
+        </select>
+      </div>
+      <div class="field">
         <label for="reviewStars">Rating</label>
         <select id="reviewStars">
           <option value="5">★★★★★ (5)</option>
