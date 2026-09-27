@@ -6,7 +6,6 @@ const session = require("express-session");
 const SQLiteStore = require("connect-sqlite3")(session);
 
 const userAuthRoutes = require("./routes/user-auth");
-const wishlistRoutes = require("./routes/wishlist");
 const authRoutes = require("./routes/auth");
 const adminApiRoutes = require("./routes/admin");
 const publicApiRoutes = require("./routes/public");
@@ -44,7 +43,6 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/user", userAuthRoutes);
-app.use("/", wishlistRoutes);
 app.use("/", publicApiRoutes);
 
 app.use("/admin/auth", authRoutes);
