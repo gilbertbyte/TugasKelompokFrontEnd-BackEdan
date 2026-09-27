@@ -88,6 +88,17 @@ db.exec(`
   )
 `);
 
+// Wishlist ("List yang Pengen Kamu Coba")
+db.exec(`
+  CREATE TABLE IF NOT EXISTS wishlist_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    item_type TEXT NOT NULL CHECK(item_type IN ('menu', 'store')),
+    item_id INTEGER NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, item_type, item_id)
+  )
+`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS content_blocks (
