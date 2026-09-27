@@ -28,7 +28,6 @@ body{
 }
 h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 
-/* ===================== Login page ===================== */
 .login-body{
   display:flex;align-items:center;justify-content:center;
   min-height:100vh;
@@ -61,7 +60,6 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 .btn-login:hover{background:var(--mustard-dark);transform:translateY(-1px);}
 .error{color:var(--pink-text);font-size:.85rem;margin-top:12px;min-height:1em;}
 
-/* ===================== Shell ===================== */
 .admin-header{
   background:var(--green-deep);color:#fff;
   display:flex;justify-content:space-between;align-items:center;
@@ -121,7 +119,6 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 .sub-heading:first-of-type{margin-top:0;}
 .hint{color:var(--text-muted);font-size:.85rem;margin:0 0 16px;}
 
-/* ===================== Form + live preview split ===================== */
 .form-preview-row{
   display:grid;
   grid-template-columns:minmax(0,1fr) minmax(280px,360px);
@@ -153,7 +150,6 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 
 .add-item-btn{margin-bottom:16px;}
 
-/* ===================== Live preview pane ===================== */
 .preview-pane{
   position:sticky;top:90px;
   background:var(--surface-alt);
@@ -175,7 +171,6 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
   overflow:hidden;
 }
 
-/* mini preview building blocks, echoing the public site's look */
 .pv-badge{
   display:inline-block;background:rgba(232,163,61,.16);color:var(--mustard-dark);
   border:1px solid rgba(232,163,61,.4);padding:4px 12px;border-radius:999px;
@@ -229,7 +224,6 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 .pv-browser-tab .dot{width:7px;height:7px;border-radius:50%;background:#D6CFB9;}
 .pv-empty{color:var(--text-muted);font-size:.8rem;font-style:italic;}
 
-/* ===================== Tables ===================== */
 .admin-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);}
 .admin-table th, .admin-table td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:.86rem;}
 .admin-table tbody tr:hover{background:var(--surface-alt);}
@@ -243,7 +237,6 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 .status-tag.buka{background:#E6F2EA;color:var(--green-dark);}
 .status-tag.tutup{background:#FBE3E7;color:var(--pink-text);}
 
-/* ===================== Buttons ===================== */
 .btn-primary{
   background:var(--mustard);color:var(--green-deep);border:none;
   padding:10px 20px;border-radius:999px;font-weight:700;cursor:pointer;font-size:.85rem;
@@ -256,7 +249,6 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 }
 .btn-outline:hover{background:var(--surface-alt);}
 
-/* ===================== Modal ===================== */
 .modal-backdrop{
   display:none;position:fixed;inset:0;background:rgba(15,43,34,.55);
   align-items:center;justify-content:center;z-index:100;padding:24px;
@@ -280,7 +272,6 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 .modal-body-grid{display:grid;grid-template-columns:1fr 260px;gap:24px;align-items:start;}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;}
 
-/* Responsive */
 @media (max-width:1000px){
   .form-preview-row, .modal-body-grid{grid-template-columns:1fr;}
   .preview-pane{position:static;}
@@ -289,4 +280,66 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 @media (max-width:720px){
   .admin-shell{flex-direction:column;}
   .admin-main{padding:24px 16px 80px;}
+}
+
+.pv-slideshow{position:relative;margin-bottom:10px;border-radius:var(--radius-sm);overflow:hidden;}
+.pv-slideshow .pv-img{margin-bottom:0;max-height:120px;}
+.pv-slide-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:24px;height:24px;border-radius:50%;
+  background:rgba(255,255,255,.9);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;line-height:1;color:var(--green-deep);font-weight:700;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.pv-slide-arrow:hover{background:#fff;}
+.pv-slide-prev{left:6px;}
+.pv-slide-next{right:6px;}
+.pv-slide-counter{
+  position:absolute;bottom:6px;right:8px;
+  background:rgba(0,0,0,.55);color:#fff;font-size:.65rem;font-weight:700;
+  padding:1px 7px;border-radius:999px;
+}
+
+.image-manager, #aboutImageManager{margin-bottom:16px;}
+.image-manager-empty{color:var(--text-muted);font-size:.85rem;margin:0 0 10px;}
+.image-manager-viewer{
+  position:relative;
+  width:100%;
+  max-width:320px;
+  height:180px;
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+  background:var(--surface-alt);
+  margin-bottom:10px;
+}
+.image-manager-viewer img{width:100%;height:100%;object-fit:cover;display:block;}
+.image-manager-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,.9);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.15rem;line-height:1;color:var(--green-deep);font-weight:700;
+  box-shadow:0 2px 8px rgba(0,0,0,.22);
+}
+.image-manager-arrow:hover{background:#fff;}
+.image-manager-prev{left:8px;}
+.image-manager-next{right:8px;}
+.image-manager-counter{
+  position:absolute;bottom:8px;right:10px;
+  background:rgba(0,0,0,.55);color:#fff;font-size:.72rem;font-weight:600;
+  padding:2px 8px;border-radius:999px;
+}
+.image-manager-remove{
+  display:inline-block;margin-bottom:12px;font-size:.8rem;padding:7px 14px;
+}
+.image-manager-add-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.image-manager-status{font-size:.8rem;color:var(--green-dark);font-weight:600;}
+
+.image-count-badge{
+  position:absolute;bottom:-4px;right:-4px;
+  background:var(--mustard);color:var(--green-deep);
+  font-size:.65rem;font-weight:800;
+  border-radius:999px;padding:1px 5px;
+  border:2px solid #fff;
 }

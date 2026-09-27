@@ -16,7 +16,7 @@ $(function () {
         window.location.href = res.redirect || "/admin";
       })
       .fail(function (xhr) {
-        var msg = "Login gagal. Coba lagi.";
+        var msg = "Sign-in failed. Please try again.";
         if (xhr.responseJSON && xhr.responseJSON.error) msg = xhr.responseJSON.error;
         $("#loginError").text(msg);
       });
