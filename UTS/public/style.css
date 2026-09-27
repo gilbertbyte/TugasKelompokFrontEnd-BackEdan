@@ -241,6 +241,7 @@ p{margin:0 0 8px;}
 .user-dropdown{display:none;align-items:center;gap:10px;}
 .user-dropdown.show{display:flex;}
 .user-dropdown-info{display:flex;align-items:center;gap:8px;}
+.user-dropdown .btn{padding:8px 16px;font-size:0.85rem;}
 .user-avatar{
   width:32px;height:32px;border-radius:50%;
   background:var(--green-dark);color:#fff;
