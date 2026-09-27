@@ -27,3 +27,4 @@ npm run seed
 ```bash
 npm start
 ```
+deploy trigger
