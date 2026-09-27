@@ -54,7 +54,7 @@ $(function () {
         : '<p class="menu-store-info">Toko belum ditentukan</p>';
 
       $grid.append(
-        '<div class="menu-card">' +
+        '<div class="menu-card" data-menu-id="' + m.id + '">' +
           media +
           '<div class="card-body">' +
             wishlistBtnHtml("menu", m.id) +
@@ -402,6 +402,153 @@ $(function () {
           "Login gagal. Coba lagi.";
         showAuthError(msg);
       });
+  });
+
+  /* ---------- Detail modals (toko & menu) ---------- */
+
+  // Klik link/anchor di dalam store-card (mis. "Lihat Detail") tidak boleh ikut
+  // pindah halaman (href="#"), tapi klik tetap boleh menggelembung ke handler
+  // .store-card di bawah supaya modal Detail Toko tetap terbuka.
+  $(document).on("click", ".store-card a", function (e) {
+    e.preventDefault();
+  });
+
+  // Tombol wishlist tidak boleh ikut membuka modal detail.
+  $(document).on("click", ".wishlist-btn", function (e) {
+    e.stopPropagation();
+  });
+
+  // Tombol "Lihat Toko Ini" pada kartu menu -> buka Detail Toko
+  $(document).on("click", ".menu-toko-link", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    openStoreDetail($(this).data("store-id"));
+  });
+
+  // Klik kartu toko (Toko Populer maupun hasil pencarian) -> buka Detail Toko
+  $(document).on("click", ".store-card", function () {
+    openStoreDetail($(this).data("store-id"));
+  });
+
+  // Klik kartu menu -> buka Detail Menu
+  $(document).on("click", ".menu-card", function () {
+    openMenuDetail($(this).data("menu-id"));
+  });
+
+  // Klik menu di dalam Detail Toko -> pindah ke Detail Menu
+  $(document).on("click", ".mini-menu-card", function () {
+    var menuId = $(this).data("menu-id");
+    closeStoreDetail();
+    openMenuDetail(menuId);
+  });
+
+  // Klik info toko di dalam Detail Menu -> pindah ke Detail Toko
+  $(document).on("click", ".detail-store-link", function () {
+    var storeId = $(this).data("store-id");
+    closeMenuDetail();
+    openStoreDetail(storeId);
+  });
+
+  function findStoreById(id) {
+    return STATE.stores.filter(function (s) { return String(s.id) === String(id); })[0];
+  }
+
+  function findMenuById(id) {
+    return STATE.menu.filter(function (m) { return String(m.id) === String(id); })[0];
+  }
+
+  function openStoreDetail(storeId) {
+    var store = findStoreById(storeId);
+    if (!store) return;
+
+    $("#storeDetailHero").html(
+      store.image_url
+        ? '<img src="' + escapeHtml(store.image_url) + '" alt="' + escapeHtml(store.nama) + '">'
+        : '<div class="detail-hero-placeholder">Ceritanya Gambar Toko</div>'
+    );
+
+    var buka = store.status === "Buka";
+    $("#storeDetailStatus")
+      .attr("class", "detail-status " + (buka ? "status-open" : "status-closed"))
+      .text(buka ? "Buka sekarang" : "Tutup");
+    $("#storeDetailNama").text(store.nama);
+    $("#storeDetailAlamat").text(store.alamat || "-");
+    $("#storeDetailRating").html("★ " + (store.rating || 0));
+    $("#storeDetailUlasan").text((store.ulasan_count || 0) + " ulasan");
+    $("#storeDetailJam").text(store.jam_buka || "-");
+    $("#storeDetailJarak").text(store.jarak || "-");
+
+    var storeMenus = STATE.menu.filter(function (m) {
+      return String(m.store_id) === String(store.id);
+    });
+    var $list = $("#storeDetailMenuList").empty();
+    if (!storeMenus.length) {
+      $list.append('<p class="meta">Belum ada menu untuk toko ini.</p>');
+    } else {
+      storeMenus.forEach(function (m) {
+        $list.append(
+          '<div class="mini-menu-card" data-menu-id="' + m.id + '">' +
+            (m.image_url
+              ? '<img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '">'
+              : '<div class="mini-menu-img-placeholder"></div>') +
+            '<div class="mini-menu-info">' +
+              "<h5>" + escapeHtml(m.nama) + "</h5>" +
+              '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
+            "</div>" +
+          "</div>"
+        );
+      });
+    }
+
+    $("#storeDetailModal").addClass("active");
+  }
+
+  function closeStoreDetail() {
+    $("#storeDetailModal").removeClass("active");
+  }
+
+  function openMenuDetail(menuId) {
+    var menu = findMenuById(menuId);
+    if (!menu) return;
+
+    $("#menuDetailHero").html(
+      menu.image_url
+        ? '<img src="' + escapeHtml(menu.image_url) + '" alt="' + escapeHtml(menu.nama) + '">'
+        : '<div class="detail-hero-placeholder">Ceritanya Gambar Menu</div>'
+    );
+    $("#menuDetailNama").text(menu.nama);
+    $("#menuDetailHarga").text(menu.harga || "");
+    $("#menuDetailDeskripsi").text(menu.deskripsi || "Tidak ada deskripsi untuk menu ini.");
+
+    if (menu.store_id) {
+      $("#menuDetailStoreBox").html(
+        '<div class="detail-store-link" data-store-id="' + menu.store_id + '">' +
+          "<div>" +
+            "<strong>" + escapeHtml(menu.store_nama || "") + "</strong>" +
+            '<p class="meta" style="margin:2px 0 0;">' + escapeHtml(menu.store_alamat || "") + "</p>" +
+          "</div>" +
+          '<span class="link-arrow no-arrow">Lihat Toko</span>' +
+        "</div>"
+      );
+    } else {
+      $("#menuDetailStoreBox").html('<p class="meta">Toko belum ditentukan.</p>');
+    }
+
+    $("#menuDetailModal").addClass("active");
+  }
+
+  function closeMenuDetail() {
+    $("#menuDetailModal").removeClass("active");
+  }
+
+  $("#storeDetailClose").on("click", closeStoreDetail);
+  $("#storeDetailModal").on("click", function (e) {
+    if (e.target === this) closeStoreDetail();
+  });
+
+  $("#menuDetailClose").on("click", closeMenuDetail);
+  $("#menuDetailModal").on("click", function (e) {
+    if (e.target === this) closeMenuDetail();
   });
 
   /* ---------- Auth: register submit ---------- */
