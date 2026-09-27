@@ -180,6 +180,7 @@ registerListCrud({
     { name: "deskripsi", default: "" },
     { name: "harga", default: "" },
     { name: "sort_order", default: 0 },
+    { name: "image_url", default: "" },
   ],
 });
 
