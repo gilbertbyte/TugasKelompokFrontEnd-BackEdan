@@ -1,6 +1,5 @@
 const fs = require("fs");
 const path = require("path");
-const bcrypt = require("bcrypt");
 const Database = require("better-sqlite3");
 
 const dbPath = path.join(__dirname, "data", "app.db");
@@ -89,17 +88,6 @@ db.exec(`
   )
 `);
 
-// Wishlist ("List yang Pengen Kamu Coba")
-db.exec(`
-  CREATE TABLE IF NOT EXISTS wishlist_items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    item_type TEXT NOT NULL CHECK(item_type IN ('menu', 'store')),
-    item_id INTEGER NOT NULL,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, item_type, item_id)
-  )
-`);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS content_blocks (
@@ -268,30 +256,4 @@ if (db.prepare("SELECT COUNT(*) AS c FROM faqs").get().c === 0) {
   ].forEach((f) => insertFaq.run(f));
 }
 
-<<<<<<< HEAD
-=======
-if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
-  const adminUsername = process.env.ADMIN_USERNAME;
-  const existingAdmin = db
-    .prepare("SELECT id FROM admin_users WHERE username = ?")
-    .get(adminUsername);
-
-  const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12);
-
-  if (!existingAdmin) {
-    db.prepare("INSERT INTO admin_users (username, password_hash) VALUES (?, ?)").run(
-      adminUsername,
-      hash
-    );
-    console.log(`Admin user "${adminUsername}" created from environment variables.`);
-  } else {
-    db.prepare("UPDATE admin_users SET password_hash = ? WHERE username = ?").run(
-      hash,
-      adminUsername
-    );
-    console.log(`Admin user "${adminUsername}" password synced from environment variables.`);
-  }
-}
-
->>>>>>> d612450d9c5941544c35659df514014602ecb848
 module.exports = db;
