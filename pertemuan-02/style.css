@@ -3,13 +3,13 @@
 }
 
 :root {
-    --dark-roast: #2B1D14;
-    --coffee: #6F4526;
-    --coffee-light: #8A5A34;
-    --caramel: #C08552;
+    --dark-roast: #14331F;
+    --coffee: #2E6F3E;
+    --coffee-light: #4F8A5A;
+    --caramel: #E8628C;
     --sage: #7C8B5E;
-    --cream: #F5EEE1;
-    --cream-card: #FBF7EF;
+    --cream: #F3F7EC;
+    --cream-card: #FBFDF8;
 }
 
 body {
@@ -61,15 +61,14 @@ a {
     color: var(--cream);
 }
 
-.nav-toggle {
-    display: none;
-}
-
 .nav-burger {
     display: flex;
     flex-direction: column;
     gap: 5px;
     cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
 }
 
 .nav-burger span {
@@ -86,7 +85,8 @@ a {
     padding-top: 12px;
 }
 
-.nav-toggle:checked ~ .main-nav {
+/* class ini yang ditambah/dihapus lewat jQuery, gantikan trik checkbox */
+.main-nav.nav-open {
     display: flex;
 }
 
@@ -169,61 +169,53 @@ a {
     color: #4a3826;
 }
 
-.menu-card .price {
-    display: block;
-    font-weight: bold;
-    color: var(--coffee);
-}
-
 .menu-footer {
+    margin: 4px 16px 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 0 16px;
+    gap: 10px;
 }
 
-.like-widget {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.like-btn {
-    border: 1px solid var(--caramel);
-    background: transparent;
+.menu-card .price {
+    font-weight: bold;
     color: var(--coffee);
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+}
+
+/* Tombol Suka + penghitung (fitur interaktif tambahan #1) */
+.like-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 5px;
+    background: var(--cream);
+    border: 1px solid rgba(111, 69, 38, 0.25);
+    border-radius: 20px;
+    padding: 5px 12px;
     cursor: pointer;
-    font-size: 1rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: var(--coffee);
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.like-btn:active {
+    transform: scale(0.94);
+}
+
+.like-icon {
+    font-size: 1.05rem;
     line-height: 1;
-    transition: transform 0.15s ease, background 0.2s ease, color 0.2s ease;
 }
 
-.like-btn:hover {
-    background: rgba(192, 133, 82, 0.15);
-}
-
+/* class 'liked' ditambah/dihapus lewat jQuery saat tombol diklik */
 .like-btn.liked {
     background: var(--caramel);
-    color: #fff;
+    color: var(--dark-roast);
     border-color: var(--caramel);
 }
 
-.like-btn.like-pop {
-    transform: scale(1.3);
-}
-
-.like-count {
-    font-size: 0.85rem;
-    font-weight: bold;
-    color: var(--coffee);
-    min-width: 14px;
-    text-align: left;
+.like-btn.liked .like-icon {
+    color: #b3261e;
 }
 
 .about-section {
@@ -270,16 +262,17 @@ a {
     color: var(--dark-roast);
 }
 
+/* ===== FAQ Section ===== */
+
 .faq-section {
     max-width: 800px;
     margin: 0 auto;
-    padding: 50px 20px 60px;
+    padding: 50px 20px 70px;
     text-align: center;
 }
 
 .faq-list {
     text-align: left;
-    margin-top: 24px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -288,46 +281,40 @@ a {
 .faq-item {
     background: var(--cream-card);
     border: 1px solid rgba(111, 69, 38, 0.2);
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
 }
 
 .faq-question {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
     padding: 16px 18px;
+    font-size: 1rem;
+    font-family: inherit;
     font-weight: bold;
+    color: var(--dark-roast);
     cursor: pointer;
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    align-items: center;
     gap: 12px;
-    user-select: none;
-    transition: background 0.2s ease;
-}
-
-.faq-question:hover {
-    background: rgba(192, 133, 82, 0.12);
 }
 
 .faq-icon {
     flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--caramel);
-    color: var(--dark-roast);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    transition: transform 0.25s ease;
+    font-size: 1.3rem;
+    color: var(--coffee);
+    transition: transform 0.2s ease;
 }
 
-.faq-question.active .faq-icon {
-    transform: rotate(45deg);
+.faq-item.active .faq-icon {
+    transform: rotate(45deg); /* '+' jadi 'x' saat terbuka */
 }
 
 .faq-answer {
-    display: none;
+    display: none; /* di-toggle oleh jQuery (slideToggle) */
     padding: 0 18px 16px;
 }
 
@@ -335,6 +322,7 @@ a {
     margin: 0;
     color: #4a3826;
     line-height: 1.6;
+    font-size: 0.94rem;
 }
 
 .site-footer {
@@ -383,6 +371,28 @@ a {
     .footer-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+/* Tombol kembali ke atas (fitur interaktif tambahan #2) */
+#back-to-top {
+    display: none; /* disembunyikan dulu, dimunculkan via jQuery .fadeIn() saat discroll */
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: var(--coffee);
+    color: var(--cream);
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    z-index: 20;
+}
+
+#back-to-top:hover {
+    background: var(--dark-roast);
 }
 
 @media (min-width: 992px) {
