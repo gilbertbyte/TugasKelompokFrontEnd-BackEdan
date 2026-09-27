@@ -1,5 +1,9 @@
 $(function () {
 
+  /* ================================================================ */
+  /* Auth: who am I / logout                                           */
+  /* ================================================================ */
+
   $.get("/admin/auth/me", function (res) {
     if (res.loggedIn) $("#whoami").text("Halo, " + res.username);
   });
@@ -14,6 +18,14 @@ $(function () {
     if (xhr.status === 401) window.location.href = "/admin/login";
   }
 
+  function escapeHtml(str) {
+    return $("<div>").text(str == null ? "" : str).html();
+  }
+
+  /* ================================================================ */
+  /* Tab navigation                                                     */
+  /* ================================================================ */
+
   $(".tab-btn").on("click", function () {
     var tab = $(this).data("tab");
     $(".tab-btn").removeClass("active");
@@ -22,11 +34,139 @@ $(function () {
     $("#tab-" + tab).addClass("active");
   });
 
-  var CONTENT_KEYS = [
-    "hero", "toko_populer", "menu_section", "about", "history",
-    "testimonial_section", "cari_toko", "faq_section", "contact",
-    "footer", "site",
-  ];
+  /* ================================================================ */
+  /* Live preview renderers for content-block forms                    */
+  /* ================================================================ */
+
+  var CONTENT_PREVIEW_RENDERERS = {
+    hero: function (v) {
+      return (
+        '<span class="pv-badge">' + escapeHtml(v.badge || "Badge") + "</span>" +
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "Judul hero") + "</h3>" +
+        '<p class="pv-sub">' + escapeHtml(v.subheading || "") + "</p>" +
+        '<div class="pv-search">' + escapeHtml(v.search_placeholder || "Cari...") + "</div>" +
+        '<div class="pv-actions">' +
+          '<span class="pv-btn pv-btn-mustard">' + escapeHtml(v.cta_primary || "Tombol 1") + "</span>" +
+          '<span class="pv-btn pv-btn-outline">' + escapeHtml(v.cta_secondary || "Tombol 2") + "</span>" +
+        "</div>"
+      );
+    },
+    toko_populer: function (v) {
+      return (
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>" +
+        '<p class="pv-sub">' + escapeHtml(v.subheading || "") + "</p>" +
+        '<span class="pv-link">' + escapeHtml(v.link_text || "") + " →</span>"
+      );
+    },
+    menu_section: function (v) {
+      return (
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>" +
+        '<p class="pv-sub">' + escapeHtml(v.subheading || "") + "</p>"
+      );
+    },
+    about: function (v) {
+      var img = v.image_url
+        ? '<img class="pv-img" src="' + escapeHtml(v.image_url) + '">'
+        : '<div class="pv-img-placeholder">' + escapeHtml(v.media_text || "Placeholder gambar") + "</div>";
+      return (
+        img +
+        '<span class="pv-eyebrow">' + escapeHtml(v.eyebrow || "") + "</span>" +
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>" +
+        '<p class="pv-sub">' + escapeHtml(v.description || "") + "</p>" +
+        '<div class="pv-pill-row">' +
+          '<span class="pv-pill">' + escapeHtml(v.pill_1 || "") + "</span>" +
+          '<span class="pv-pill">' + escapeHtml(v.pill_2 || "") + "</span>" +
+          '<span class="pv-pill">' + escapeHtml(v.pill_3 || "") + "</span>" +
+        "</div>"
+      );
+    },
+    history: function (v) {
+      return (
+        '<div class="pv-dark-box">' +
+          '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>" +
+          "<p>" + escapeHtml(v.text || "") + "</p>" +
+        "</div>"
+      );
+    },
+    testimonial_section: function (v) {
+      return (
+        '<span class="pv-eyebrow mustard">' + escapeHtml(v.eyebrow || "") + "</span>" +
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>" +
+        '<span class="pv-btn pv-btn-mustard">' + escapeHtml(v.cta || "") + "</span>"
+      );
+    },
+    cari_toko: function (v) {
+      return (
+        '<span class="pv-eyebrow mustard">' + escapeHtml(v.eyebrow || "") + "</span>" +
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>" +
+        '<p class="pv-sub">' + escapeHtml(v.subheading || "") + "</p>"
+      );
+    },
+    faq_section: function (v) {
+      return (
+        '<span class="pv-eyebrow mustard">' + escapeHtml(v.eyebrow || "") + "</span>" +
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>"
+      );
+    },
+    contact: function (v) {
+      return (
+        '<span class="pv-eyebrow mustard">' + escapeHtml(v.eyebrow || "") + "</span>" +
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>" +
+        '<div class="pv-card">' +
+          "<p>Email: " + escapeHtml(v.email || "") + "</p>" +
+          "<p>WhatsApp: " + escapeHtml(v.whatsapp || "") + "</p>" +
+          "<p>" + escapeHtml(v.note || "") + "</p>" +
+          "<p><strong>Jam:</strong> " + escapeHtml(v.hours || "") + "</p>" +
+        "</div>"
+      );
+    },
+    footer: function (v) {
+      return (
+        '<div class="pv-footer-mock">' +
+          "<strong>Pisang Ijo</strong>" +
+          escapeHtml(v.tagline || "") + "<br>" +
+          escapeHtml(v.social_text || "") + "<br><br>" +
+          escapeHtml(v.help_email || "") + "<br>" +
+          escapeHtml(v.help_whatsapp || "") + "<br><br>" +
+          escapeHtml(v.legal_terms_label || "") + " · " + escapeHtml(v.legal_privacy_label || "") + "<br><br>" +
+          "© " + escapeHtml(v.copyright || "") +
+        "</div>"
+      );
+    },
+    site: function (v) {
+      return (
+        '<div class="pv-browser-tab"><span class="dot"></span><span class="dot"></span>' +
+          escapeHtml(v.site_title || "Judul Situs") +
+        "</div>" +
+        '<div class="pv-card" style="border-radius:0 0 8px 8px;margin-top:-1px;">' +
+          "<p style='font-weight:700;color:var(--green-deep);font-size:1rem;'>" + escapeHtml(v.logo_text || "Logo") + "</p>" +
+          "<p style='margin:0;'>Tampil di header &amp; footer situs.</p>" +
+        "</div>"
+      );
+    },
+  };
+
+  var CONTENT_KEYS = Object.keys(CONTENT_PREVIEW_RENDERERS);
+
+  function collectFormValues($form) {
+    var values = {};
+    $form.find("[data-field]").each(function () {
+      values[$(this).data("field")] = $(this).val();
+    });
+    return values;
+  }
+
+  function updateContentPreview(key) {
+    var $form = $("#form-" + key);
+    var $preview = $("#preview-" + key);
+    if (!$form.length || !$preview.length) return;
+
+    var renderer = CONTENT_PREVIEW_RENDERERS[key];
+    if (!renderer) return;
+
+    var values = collectFormValues($form);
+    $preview.html(renderer(values));
+  }
 
   function loadContentForm(key) {
     var $form = $("#form-" + key);
@@ -40,25 +180,28 @@ $(function () {
         });
         if (key === "about" && data.image_url) {
           $("#aboutImagePreview").attr("src", data.image_url).show();
-          }
+        }
+        updateContentPreview(key);
       })
       .fail(handleAuthFail);
   }
 
   CONTENT_KEYS.forEach(loadContentForm);
 
+  // Live-update the preview as the admin types, before saving.
+  $(".content-form").on("input change", "[data-field]", function () {
+    var key = $(this).closest(".content-form").attr("id").replace("form-", "");
+    updateContentPreview(key);
+  });
+
   $(".content-form").on("submit", function (e) {
     e.preventDefault();
     var $form = $(this);
     var key = $form.attr("id").replace("form-", "");
-    var payload = {};
-
-    $form.find("[data-field]").each(function () {
-      payload[$(this).data("field")] = $(this).val();
-    });
+    var payload = collectFormValues($form);
 
     var $status = $form.find(".save-status");
-    $status.text("Menyimpan...");
+    $status.removeClass("err").text("Menyimpan...");
 
     $.ajax({
       url: "/admin/api/content/" + key,
@@ -72,9 +215,13 @@ $(function () {
       })
       .fail(function (xhr) {
         handleAuthFail(xhr);
-        $status.text("Gagal menyimpan.");
+        $status.addClass("err").text("Gagal menyimpan.");
       });
   });
+
+  /* ================================================================ */
+  /* Stores cache (used for store-select dropdown + menu preview)      */
+  /* ================================================================ */
 
   var STORES_CACHE = [];
 
@@ -84,6 +231,10 @@ $(function () {
     });
   }
   loadStoresCache();
+
+  /* ================================================================ */
+  /* Generic list CRUD (stores, menu, testimonials, faqs)               */
+  /* ================================================================ */
 
   var LIST_CONFIG = {
     stores: {
@@ -100,6 +251,24 @@ $(function () {
         { name: "ulasan_count", label: "Jumlah Ulasan", type: "number", min: "0" },
         { name: "image_url", label: "Gambar Toko", type: "image" },
       ],
+      preview: function (v) {
+        var img = v.image_url
+          ? '<img class="pv-img" src="' + escapeHtml(v.image_url) + '">'
+          : '<div class="pv-img-placeholder">Belum ada gambar</div>';
+        var buka = v.status !== "Tutup";
+        return (
+          img +
+          '<div class="pv-card">' +
+            "<h4>" + escapeHtml(v.nama || "Nama Toko") + "</h4>" +
+            "<p>" + escapeHtml(v.alamat || "") + "</p>" +
+            "<p>" + escapeHtml(v.jarak || "") + " &middot; " + escapeHtml(v.jam_buka || "") + "</p>" +
+            '<div class="pv-row">' +
+              '<span class="pv-status ' + (buka ? "buka" : "tutup") + '">' + escapeHtml(v.status || "Buka") + "</span>" +
+              "<span>★ " + (v.rating || 0) + " (" + (v.ulasan_count || 0) + ")</span>" +
+            "</div>" +
+          "</div>"
+        );
+      },
     },
     menu: {
       title: "Menu",
@@ -112,6 +281,23 @@ $(function () {
         { name: "image_url", label: "Gambar Menu", type: "image" },
         { name: "store_id", label: "Toko", type: "store-select" },
       ],
+      preview: function (v) {
+        var img = v.image_url
+          ? '<img class="pv-img" src="' + escapeHtml(v.image_url) + '">'
+          : '<div class="pv-img-placeholder">Belum ada gambar</div>';
+        var store = STORES_CACHE.find(function (s) { return String(s.id) === String(v.store_id); });
+        return (
+          img +
+          '<div class="pv-card">' +
+            "<h4>" + escapeHtml(v.nama || "Nama Menu") + "</h4>" +
+            "<p>" + escapeHtml(v.deskripsi || "") + "</p>" +
+            '<div class="pv-row">' +
+              '<span class="pv-price">' + escapeHtml(v.harga || "") + "</span>" +
+              "<span style='font-size:.75rem;color:var(--text-muted);'>" + (store ? escapeHtml(store.nama) : "Belum dipilih") + "</span>" +
+            "</div>" +
+          "</div>"
+        );
+      },
     },
     testimonials: {
       title: "Testimoni",
@@ -123,6 +309,17 @@ $(function () {
         { name: "waktu", label: "Keterangan Waktu (contoh: 2 hari yang lalu)", type: "text" },
         { name: "stars", label: "Jumlah Bintang (1-5)", type: "number", min: "1", max: "5" },
       ],
+      preview: function (v) {
+        var stars = Math.max(0, Math.min(5, parseInt(v.stars, 10) || 5));
+        return (
+          '<div class="pv-card">' +
+            '<div class="pv-stars">' + "★".repeat(stars) + "</div>" +
+            "<h4>" + escapeHtml(v.nama || "Nama") + "</h4>" +
+            "<p>" + escapeHtml(v.ulasan || "") + "</p>" +
+            "<p style='font-size:.72rem;'>" + escapeHtml(v.waktu || "") + "</p>" +
+          "</div>"
+        );
+      },
     },
     faqs: {
       title: "Pertanyaan",
@@ -132,12 +329,16 @@ $(function () {
         { name: "question", label: "Pertanyaan", type: "text", required: true },
         { name: "answer", label: "Jawaban", type: "textarea" },
       ],
+      preview: function (v) {
+        return (
+          '<div class="pv-faq-item">' +
+            '<div class="q">' + escapeHtml(v.question || "Pertanyaan") + "</div>" +
+            '<div class="a">' + escapeHtml(v.answer || "") + "</div>" +
+          "</div>"
+        );
+      },
     },
   };
-
-  function escapeHtml(str) {
-    return $("<div>").text(str == null ? "" : str).html();
-  }
 
   function loadList(listKey) {
     var config = LIST_CONFIG[listKey];
@@ -152,7 +353,7 @@ $(function () {
 
     if (!items.length) {
       $tbody.append(
-        '<tr><td colspan="' + (config.columns.length + 1) + '" style="color:#5B6B62;">Belum ada data.</td></tr>'
+        '<tr><td colspan="' + (config.columns.length + 1) + '" style="color:#66756C;">Belum ada data.</td></tr>'
       );
       return;
     }
@@ -171,8 +372,8 @@ $(function () {
           }
           if (col === "image_url") {
             return val
-              ? '<td><img src="' + escapeHtml(val) + '" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px;"></td>'
-              : '<td style="color:#5B6B62;font-size:0.8rem;">Belum ada</td>';
+              ? '<td><img src="' + escapeHtml(val) + '" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:6px;"></td>'
+              : '<td style="color:#66756C;font-size:0.8rem;">Belum ada</td>';
           }
           return "<td>" + escapeHtml(truncate(val)) + "</td>";
         })
@@ -199,6 +400,24 @@ $(function () {
 
   Object.keys(LIST_CONFIG).forEach(loadList);
 
+  /* ---------- Modal fields + live preview ---------- */
+
+  function collectItemFormValues() {
+    var values = {};
+    $("#itemFormFields [data-field]").each(function () {
+      values[$(this).data("field")] = $(this).val();
+    });
+    return values;
+  }
+
+  function updateItemPreview() {
+    var listKey = $("#itemListKey").val();
+    var config = LIST_CONFIG[listKey];
+    if (!config || !config.preview) return;
+    var values = collectItemFormValues();
+    $("#itemPreview").html(config.preview(values));
+  }
+
   function buildModalFields(listKey, item) {
     var config = LIST_CONFIG[listKey];
     var $container = $("#itemFormFields").empty();
@@ -214,7 +433,7 @@ $(function () {
           .css({ maxWidth: "160px", display: value ? "block" : "none", marginBottom: "8px", borderRadius: "8px" })
           .attr("src", value || "");
         var $fileInput = $("<input>").attr("type", "file").attr("accept", "image/jpeg,image/png,image/webp");
-        var $status = $("<span>").css({ fontSize: "0.8rem", color: "#5B6B62", marginLeft: "8px" });
+        var $status = $("<span>").css({ fontSize: "0.8rem", color: "#66756C", marginLeft: "8px" });
 
         $fileInput.on("change", function () {
           var file = this.files[0];
@@ -235,6 +454,7 @@ $(function () {
               $preview.attr("src", res.url).show();
               $status.text("Berhasil ✓");
               setTimeout(function () { $status.text(""); }, 2000);
+              updateItemPreview();
             })
             .fail(function () {
               $status.text("Gagal upload.");
@@ -279,13 +499,18 @@ $(function () {
     $("#itemId").val(item ? item.id : "");
     $("#itemListKey").val(listKey);
     buildModalFields(listKey, item);
+    updateItemPreview();
     $("#itemModal").addClass("open");
   }
 
   function closeItemModal() {
     $("#itemModal").removeClass("open");
     $("#itemFormFields").empty();
+    $("#itemPreview").empty();
   }
+
+  // Live-update the modal preview as any field changes.
+  $("#itemFormFields").on("input change", "[data-field]", updateItemPreview);
 
   $(document).on("click", ".add-item-btn", function () {
     openItemModal($(this).data("list"), null);
@@ -323,11 +548,7 @@ $(function () {
     var listKey = $("#itemListKey").val();
     var id = $("#itemId").val();
     var config = LIST_CONFIG[listKey];
-
-    var payload = {};
-    $("#itemFormFields [data-field]").each(function () {
-      payload[$(this).data("field")] = $(this).val();
-    });
+    var payload = collectItemFormValues();
 
     var req = id
       ? $.ajax({
@@ -347,6 +568,7 @@ $(function () {
       .done(function () {
         closeItemModal();
         loadList(listKey);
+        if (listKey === "stores") loadStoresCache();
       })
       .fail(function (xhr) {
         handleAuthFail(xhr);
@@ -354,8 +576,9 @@ $(function () {
       });
   });
 
-});
-$("#aboutImageFile").on("change", function () {
+  /* ---------- About section's dedicated image upload (kept from before) ---------- */
+
+  $("#aboutImageFile").on("change", function () {
     var file = this.files[0];
     if (!file) return;
     var formData = new FormData();
@@ -374,8 +597,11 @@ $("#aboutImageFile").on("change", function () {
         $("#aboutImagePreview").attr("src", res.url).show();
         $("#aboutImageStatus").text("Berhasil ✓");
         setTimeout(function () { $("#aboutImageStatus").text(""); }, 2000);
+        updateContentPreview("about");
       })
       .fail(function () {
         $("#aboutImageStatus").text("Gagal upload.");
       });
   });
+
+});
