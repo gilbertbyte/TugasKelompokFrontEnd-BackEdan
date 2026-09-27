@@ -1,9 +1,5 @@
 $(function () {
 
-  
-  
-  
-
   $.get("/admin/auth/me", function (res) {
     if (res.loggedIn) $("#whoami").text("Halo, " + res.username);
   });
@@ -18,10 +14,6 @@ $(function () {
     if (xhr.status === 401) window.location.href = "/admin/login";
   }
 
-  
-  
-  
-
   $(".tab-btn").on("click", function () {
     var tab = $(this).data("tab");
     $(".tab-btn").removeClass("active");
@@ -29,10 +21,6 @@ $(function () {
     $(".tab-panel").removeClass("active");
     $("#tab-" + tab).addClass("active");
   });
-
-  
-  
-  
 
   var CONTENT_KEYS = [
     "hero", "toko_populer", "menu_section", "about", "history",
@@ -85,11 +73,6 @@ $(function () {
       });
   });
 
-  
-  
-  
-
-  
   var LIST_CONFIG = {
     stores: {
       title: "Toko",
@@ -103,6 +86,7 @@ $(function () {
         { name: "status", label: "Status", type: "select", options: ["Buka", "Tutup"] },
         { name: "rating", label: "Rating", type: "number", step: "0.1", min: "0", max: "5" },
         { name: "ulasan_count", label: "Jumlah Ulasan", type: "number", min: "0" },
+        { name: "image_url", label: "Gambar Toko", type: "image" },
       ],
     },
     menu: {
@@ -192,8 +176,6 @@ $(function () {
 
   Object.keys(LIST_CONFIG).forEach(loadList);
 
-  
-
   function buildModalFields(listKey, item) {
     var config = LIST_CONFIG[listKey];
     var $container = $("#itemFormFields").empty();
@@ -202,6 +184,43 @@ $(function () {
       var value = item ? item[f.name] : "";
       var $label = $("<label>").text(f.label);
       var $input;
+
+      if (f.type === "image") {
+        var $hidden = $("<input>").attr("type", "hidden").attr("data-field", f.name).val(value || "");
+        var $preview = $("<img>")
+          .css({ maxWidth: "160px", display: value ? "block" : "none", marginBottom: "8px", borderRadius: "8px" })
+          .attr("src", value || "");
+        var $fileInput = $("<input>").attr("type", "file").attr("accept", "image/jpeg,image/png,image/webp");
+        var $status = $("<span>").css({ fontSize: "0.8rem", color: "#5B6B62", marginLeft: "8px" });
+
+        $fileInput.on("change", function () {
+          var file = this.files[0];
+          if (!file) return;
+          var formData = new FormData();
+          formData.append("image", file);
+          $status.text("Mengupload...");
+
+          $.ajax({
+            url: "/admin/api/upload",
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+          })
+            .done(function (res) {
+              $hidden.val(res.url);
+              $preview.attr("src", res.url).show();
+              $status.text("Berhasil ✓");
+              setTimeout(function () { $status.text(""); }, 2000);
+            })
+            .fail(function () {
+              $status.text("Gagal upload.");
+            });
+        });
+
+        $container.append($label).append($preview).append($fileInput).append($status).append($hidden);
+        return;
+      }
 
       if (f.type === "textarea") {
         $input = $("<textarea>").attr("rows", 3).attr("data-field", f.name).val(value || "");

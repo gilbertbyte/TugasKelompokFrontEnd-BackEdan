@@ -94,6 +94,7 @@ function ensureColumn(table, column, definition) {
 }
 
 ensureColumn("stores", "jarak", "TEXT");
+ensureColumn("stores", "image_url", "TEXT");
 ensureColumn("stores", "ulasan_count", "INTEGER DEFAULT 0");
 ensureColumn("stores", "sort_order", "INTEGER DEFAULT 0");
 ensureColumn("menu_items", "sort_order", "INTEGER DEFAULT 0");
