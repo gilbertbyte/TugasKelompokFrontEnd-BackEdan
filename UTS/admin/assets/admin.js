@@ -1,11 +1,8 @@
 $(function () {
 
-  /* ================================================================ */
-  /* Auth: who am I / logout                                           */
-  /* ================================================================ */
 
   $.get("/admin/auth/me", function (res) {
-    if (res.loggedIn) $("#whoami").text("Halo, " + res.username);
+    if (res.loggedIn) $("#whoami").text("Signed in as " + res.username);
   });
 
   $("#logoutBtn").on("click", function () {
@@ -22,9 +19,169 @@ $(function () {
     return $("<div>").text(str == null ? "" : str).html();
   }
 
-  /* ================================================================ */
-  /* Tab navigation                                                     */
-  /* ================================================================ */
+
+  function buildImageManager($container, initialImages, onChange) {
+    var images = (initialImages || []).slice();
+    var currentIndex = 0;
+
+    function uploadSequentially(files, onDone) {
+      var idx = 0;
+      function next() {
+        if (idx >= files.length) return onDone();
+        var file = files[idx++];
+        var formData = new FormData();
+        formData.append("image", file);
+
+        $.ajax({
+          url: "/admin/api/upload",
+          method: "POST",
+          data: formData,
+          processData: false,
+          contentType: false,
+        })
+          .done(function (res) {
+            images.push(res.url);
+            currentIndex = images.length - 1;
+            next();
+          })
+          .fail(function () {
+            onDone("One or more files could not be uploaded.");
+          });
+      }
+      next();
+    }
+
+    function render() {
+      $container.empty();
+
+      if (images.length > 0) {
+        if (currentIndex >= images.length) currentIndex = images.length - 1;
+        if (currentIndex < 0) currentIndex = 0;
+
+        var $viewer = $('<div class="image-manager-viewer"></div>');
+        $viewer.append($("<img>").attr("src", images[currentIndex]));
+
+        if (images.length > 1) {
+          var $prev = $('<button type="button" class="image-manager-arrow image-manager-prev">&#8249;</button>');
+          var $next = $('<button type="button" class="image-manager-arrow image-manager-next">&#8250;</button>');
+          $prev.on("click", function () {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            render();
+          });
+          $next.on("click", function () {
+            currentIndex = (currentIndex + 1) % images.length;
+            render();
+          });
+          $viewer.append($prev).append($next);
+          $viewer.append(
+            $('<span class="image-manager-counter"></span>').text((currentIndex + 1) + " / " + images.length)
+          );
+        }
+        $container.append($viewer);
+
+        var $removeBtn = $('<button type="button" class="btn-outline image-manager-remove">Remove this image</button>');
+        $removeBtn.on("click", function () {
+          images.splice(currentIndex, 1);
+          onChange(images);
+          render();
+        });
+        $container.append($removeBtn);
+      } else {
+        $container.append('<p class="image-manager-empty">No images added yet.</p>');
+      }
+
+      var $addRow = $('<div class="image-manager-add-row"></div>');
+      var $fileInput = $("<input>").attr({
+        type: "file",
+        accept: "image/jpeg,image/png,image/webp",
+        multiple: true,
+      });
+      var $status = $('<span class="image-manager-status"></span>');
+
+      $fileInput.on("change", function () {
+        var files = Array.prototype.slice.call(this.files || []);
+        if (!files.length) return;
+        $status.text("Mengupload...");
+
+        uploadSequentially(files, function (err) {
+          onChange(images);
+          render();
+          if (err) {
+            $(".image-manager-status", $container).text(err);
+          } else {
+            $(".image-manager-status", $container).text("Berhasil ✓");
+            setTimeout(function () { $(".image-manager-status", $container).text(""); }, 2000);
+          }
+        });
+      });
+
+      $addRow.append($fileInput).append($status);
+      $container.append($addRow);
+    }
+
+    render();
+    return { getImages: function () { return images; } };
+  }
+
+
+  var SLIDE_STATE = {};
+  var SLIDE_IMAGES = {};
+
+  function parseImagesField(raw) {
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw !== "string" || !raw) return [];
+    try {
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function buildPreviewMediaBlock(slideKey, images, placeholderText) {
+    images = (images || []).filter(Boolean);
+    SLIDE_IMAGES[slideKey] = images;
+
+    if (images.length === 0) {
+      return '<div class="pv-img-placeholder">' + escapeHtml(placeholderText || "No images added yet") + "</div>";
+    }
+
+    if (images.length === 1) {
+      return '<img class="pv-img" src="' + escapeHtml(images[0]) + '">';
+    }
+
+    var idx = SLIDE_STATE[slideKey] || 0;
+    if (idx >= images.length) idx = 0;
+    SLIDE_STATE[slideKey] = idx;
+
+    return (
+      '<div class="pv-slideshow">' +
+        '<img class="pv-img" src="' + escapeHtml(images[idx]) + '">' +
+        '<button type="button" class="pv-slide-arrow pv-slide-prev" data-slide-key="' + slideKey + '">&#8249;</button>' +
+        '<button type="button" class="pv-slide-arrow pv-slide-next" data-slide-key="' + slideKey + '">&#8250;</button>' +
+        '<span class="pv-slide-counter">' + (idx + 1) + " / " + images.length + "</span>" +
+      "</div>"
+    );
+  }
+
+  $(document).on("click", ".pv-slide-prev, .pv-slide-next", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    var slideKey = $(this).data("slide-key");
+    var images = SLIDE_IMAGES[slideKey] || [];
+    if (!images.length) return;
+
+    var dir = $(this).hasClass("pv-slide-prev") ? -1 : 1;
+    SLIDE_STATE[slideKey] = ((SLIDE_STATE[slideKey] || 0) + dir + images.length) % images.length;
+
+    if (slideKey === "item") {
+      updateItemPreview();
+    } else {
+      updateContentPreview(slideKey);
+    }
+  });
+
 
   $(".tab-btn").on("click", function () {
     var tab = $(this).data("tab");
@@ -34,9 +191,6 @@ $(function () {
     $("#tab-" + tab).addClass("active");
   });
 
-  /* ================================================================ */
-  /* Live preview renderers for content-block forms                    */
-  /* ================================================================ */
 
   var CONTENT_PREVIEW_RENDERERS = {
     hero: function (v) {
@@ -44,7 +198,7 @@ $(function () {
         '<span class="pv-badge">' + escapeHtml(v.badge || "Badge") + "</span>" +
         '<h3 class="pv-heading">' + escapeHtml(v.heading || "Judul hero") + "</h3>" +
         '<p class="pv-sub">' + escapeHtml(v.subheading || "") + "</p>" +
-        '<div class="pv-search">' + escapeHtml(v.search_placeholder || "Cari...") + "</div>" +
+        '<div class="pv-search">' + escapeHtml(v.search_placeholder || "Search...") + "</div>" +
         '<div class="pv-actions">' +
           '<span class="pv-btn pv-btn-mustard">' + escapeHtml(v.cta_primary || "Tombol 1") + "</span>" +
           '<span class="pv-btn pv-btn-outline">' + escapeHtml(v.cta_secondary || "Tombol 2") + "</span>" +
@@ -65,13 +219,11 @@ $(function () {
       );
     },
     about: function (v) {
-      var img = v.image_url
-        ? '<img class="pv-img" src="' + escapeHtml(v.image_url) + '">'
-        : '<div class="pv-img-placeholder">' + escapeHtml(v.media_text || "Placeholder gambar") + "</div>";
+      var img = buildPreviewMediaBlock("about", parseImagesField(v.images), v.media_text);
       return (
         img +
         '<span class="pv-eyebrow">' + escapeHtml(v.eyebrow || "") + "</span>" +
-        '<h3 class="pv-heading">' + escapeHtml(v.heading || "") + "</h3>" +
+        '<h3 class="pv-heading">' + escapeHtml(v.heading || "Judul") + "</h3>" +
         '<p class="pv-sub">' + escapeHtml(v.description || "") + "</p>" +
         '<div class="pv-pill-row">' +
           '<span class="pv-pill">' + escapeHtml(v.pill_1 || "") + "</span>" +
@@ -123,7 +275,7 @@ $(function () {
     footer: function (v) {
       return (
         '<div class="pv-footer-mock">' +
-          "<strong>Pisang Ijo</strong>" +
+          "<strong>Content Studio</strong>" +
           escapeHtml(v.tagline || "") + "<br>" +
           escapeHtml(v.social_text || "") + "<br><br>" +
           escapeHtml(v.help_email || "") + "<br>" +
@@ -176,11 +328,19 @@ $(function () {
       .done(function (data) {
         $form.find("[data-field]").each(function () {
           var field = $(this).data("field");
+          if (field === "images") return;
           $(this).val(data[field] !== undefined ? data[field] : "");
         });
-        if (key === "about" && data.image_url) {
-          $("#aboutImagePreview").attr("src", data.image_url).show();
+
+        if (key === "about") {
+          var initialImages = parseImagesField(data.images);
+          $("#aboutImagesField").val(JSON.stringify(initialImages));
+          buildImageManager($("#aboutImageManager"), initialImages, function (images) {
+            $("#aboutImagesField").val(JSON.stringify(images));
+            updateContentPreview("about");
+          });
         }
+
         updateContentPreview(key);
       })
       .fail(handleAuthFail);
@@ -188,7 +348,6 @@ $(function () {
 
   CONTENT_KEYS.forEach(loadContentForm);
 
-  // Live-update the preview as the admin types, before saving.
   $(".content-form").on("input change", "[data-field]", function () {
     var key = $(this).closest(".content-form").attr("id").replace("form-", "");
     updateContentPreview(key);
@@ -201,7 +360,7 @@ $(function () {
     var payload = collectFormValues($form);
 
     var $status = $form.find(".save-status");
-    $status.removeClass("err").text("Menyimpan...");
+    $status.removeClass("err").text("Saving...");
 
     $.ajax({
       url: "/admin/api/content/" + key,
@@ -210,18 +369,15 @@ $(function () {
       data: JSON.stringify(payload),
     })
       .done(function () {
-        $status.text("Tersimpan ✓");
+        $status.text("Saved ✓");
         setTimeout(function () { $status.text(""); }, 2000);
       })
       .fail(function (xhr) {
         handleAuthFail(xhr);
-        $status.addClass("err").text("Gagal menyimpan.");
+        $status.addClass("err").text("Unable to save changes.");
       });
   });
 
-  /* ================================================================ */
-  /* Stores cache (used for store-select dropdown + menu preview)      */
-  /* ================================================================ */
 
   var STORES_CACHE = [];
 
@@ -232,38 +388,33 @@ $(function () {
   }
   loadStoresCache();
 
-  /* ================================================================ */
-  /* Generic list CRUD (stores, menu, testimonials, faqs)               */
-  /* ================================================================ */
 
   var LIST_CONFIG = {
     stores: {
-      title: "Toko",
+      title: "Store",
       endpoint: "stores",
-      columns: ["image_url", "nama", "alamat", "jarak", "jam_buka", "status", "rating", "ulasan_count"],
+      columns: ["images", "nama", "alamat", "jarak", "jam_buka", "status", "rating", "ulasan_count"],
       fields: [
-        { name: "nama", label: "Nama Toko", type: "text", required: true },
-        { name: "alamat", label: "Alamat", type: "text" },
-        { name: "jarak", label: "Jarak (contoh: 1.2 km)", type: "text" },
-        { name: "jam_buka", label: "Jam Buka", type: "text" },
-        { name: "status", label: "Status", type: "select", options: ["Buka", "Tutup"] },
+        { name: "nama", label: "Store Name", type: "text", required: true },
+        { name: "alamat", label: "Address", type: "text" },
+        { name: "jarak", label: "Distance (e.g. 1.2 km)", type: "text" },
+        { name: "jam_buka", label: "Opening Hours", type: "text" },
+        { name: "status", label: "Status", type: "select", options: [{ value: "Buka", label: "Open" }, { value: "Tutup", label: "Closed" }] },
         { name: "rating", label: "Rating", type: "number", step: "0.1", min: "0", max: "5" },
-        { name: "ulasan_count", label: "Jumlah Ulasan", type: "number", min: "0" },
-        { name: "image_url", label: "Gambar Toko", type: "image" },
+        { name: "ulasan_count", label: "Review Count", type: "number", min: "0" },
+        { name: "images", label: "Store Images (multiple allowed)", type: "images" },
       ],
       preview: function (v) {
-        var img = v.image_url
-          ? '<img class="pv-img" src="' + escapeHtml(v.image_url) + '">'
-          : '<div class="pv-img-placeholder">Belum ada gambar</div>';
+        var img = buildPreviewMediaBlock("item", parseImagesField(v.images), "No images added yet");
         var buka = v.status !== "Tutup";
         return (
           img +
           '<div class="pv-card">' +
-            "<h4>" + escapeHtml(v.nama || "Nama Toko") + "</h4>" +
+            "<h4>" + escapeHtml(v.nama || "Store Name") + "</h4>" +
             "<p>" + escapeHtml(v.alamat || "") + "</p>" +
             "<p>" + escapeHtml(v.jarak || "") + " &middot; " + escapeHtml(v.jam_buka || "") + "</p>" +
             '<div class="pv-row">' +
-              '<span class="pv-status ' + (buka ? "buka" : "tutup") + '">' + escapeHtml(v.status || "Buka") + "</span>" +
+              '<span class="pv-status ' + (buka ? "buka" : "tutup") + '">' + escapeHtml(v.status === "Tutup" ? "Closed" : "Open") + "</span>" +
               "<span>★ " + (v.rating || 0) + " (" + (v.ulasan_count || 0) + ")</span>" +
             "</div>" +
           "</div>"
@@ -271,50 +422,48 @@ $(function () {
       },
     },
     menu: {
-      title: "Menu",
+      title: "Menu Item",
       endpoint: "menu",
-      columns: ["image_url", "nama", "deskripsi", "harga", "store_id"],
+      columns: ["images", "nama", "deskripsi", "harga", "store_id"],
       fields: [
-        { name: "nama", label: "Nama Menu", type: "text", required: true },
-        { name: "deskripsi", label: "Deskripsi", type: "text" },
-        { name: "harga", label: "Harga (contoh: Rp 15.000)", type: "text" },
-        { name: "image_url", label: "Gambar Menu", type: "image" },
-        { name: "store_id", label: "Toko", type: "store-select" },
+        { name: "nama", label: "Menu Name", type: "text", required: true },
+        { name: "deskripsi", label: "Description", type: "text" },
+        { name: "harga", label: "Price (e.g. $15.00)", type: "text" },
+        { name: "images", label: "Menu Images (multiple allowed)", type: "images" },
+        { name: "store_id", label: "Store", type: "store-select" },
       ],
       preview: function (v) {
-        var img = v.image_url
-          ? '<img class="pv-img" src="' + escapeHtml(v.image_url) + '">'
-          : '<div class="pv-img-placeholder">Belum ada gambar</div>';
+        var img = buildPreviewMediaBlock("item", parseImagesField(v.images), "No images added yet");
         var store = STORES_CACHE.find(function (s) { return String(s.id) === String(v.store_id); });
         return (
           img +
           '<div class="pv-card">' +
-            "<h4>" + escapeHtml(v.nama || "Nama Menu") + "</h4>" +
+            "<h4>" + escapeHtml(v.nama || "Menu Name") + "</h4>" +
             "<p>" + escapeHtml(v.deskripsi || "") + "</p>" +
             '<div class="pv-row">' +
               '<span class="pv-price">' + escapeHtml(v.harga || "") + "</span>" +
-              "<span style='font-size:.75rem;color:var(--text-muted);'>" + (store ? escapeHtml(store.nama) : "Belum dipilih") + "</span>" +
+              "<span style='font-size:.75rem;color:var(--text-muted);'>" + (store ? escapeHtml(store.nama) : "No store selected") + "</span>" +
             "</div>" +
           "</div>"
         );
       },
     },
     testimonials: {
-      title: "Testimoni",
+      title: "Customer Review",
       endpoint: "testimonials",
       columns: ["nama", "ulasan", "waktu", "stars"],
       fields: [
-        { name: "nama", label: "Nama", type: "text", required: true },
-        { name: "ulasan", label: "Ulasan", type: "textarea" },
-        { name: "waktu", label: "Keterangan Waktu (contoh: 2 hari yang lalu)", type: "text" },
-        { name: "stars", label: "Jumlah Bintang (1-5)", type: "number", min: "1", max: "5" },
+        { name: "nama", label: "Name", type: "text", required: true },
+        { name: "ulasan", label: "Review", type: "textarea" },
+        { name: "waktu", label: "Time Label (e.g. 2 days ago)", type: "text" },
+        { name: "stars", label: "Star Rating (1-5)", type: "number", min: "1", max: "5" },
       ],
       preview: function (v) {
         var stars = Math.max(0, Math.min(5, parseInt(v.stars, 10) || 5));
         return (
           '<div class="pv-card">' +
             '<div class="pv-stars">' + "★".repeat(stars) + "</div>" +
-            "<h4>" + escapeHtml(v.nama || "Nama") + "</h4>" +
+            "<h4>" + escapeHtml(v.nama || "Name") + "</h4>" +
             "<p>" + escapeHtml(v.ulasan || "") + "</p>" +
             "<p style='font-size:.72rem;'>" + escapeHtml(v.waktu || "") + "</p>" +
           "</div>"
@@ -322,17 +471,17 @@ $(function () {
       },
     },
     faqs: {
-      title: "Pertanyaan",
+      title: "FAQ Entry",
       endpoint: "faqs",
       columns: ["question", "answer"],
       fields: [
-        { name: "question", label: "Pertanyaan", type: "text", required: true },
-        { name: "answer", label: "Jawaban", type: "textarea" },
+        { name: "question", label: "Question", type: "text", required: true },
+        { name: "answer", label: "Answer", type: "textarea" },
       ],
       preview: function (v) {
         return (
           '<div class="pv-faq-item">' +
-            '<div class="q">' + escapeHtml(v.question || "Pertanyaan") + "</div>" +
+            '<div class="q">' + escapeHtml(v.question || "Question") + "</div>" +
             '<div class="a">' + escapeHtml(v.answer || "") + "</div>" +
           "</div>"
         );
@@ -353,7 +502,7 @@ $(function () {
 
     if (!items.length) {
       $tbody.append(
-        '<tr><td colspan="' + (config.columns.length + 1) + '" style="color:#66756C;">Belum ada data.</td></tr>'
+        '<tr><td colspan="' + (config.columns.length + 1) + '" style="color:#66756C;">No records found.</td></tr>'
       );
       return;
     }
@@ -368,12 +517,14 @@ $(function () {
           }
           if (col === "store_id") {
             var store = STORES_CACHE.find(function (s) { return s.id == val; });
-            return "<td>" + (store ? escapeHtml(store.nama) : "<em>Belum dipilih</em>") + "</td>";
+            return "<td>" + (store ? escapeHtml(store.nama) : "<em>No store selected</em>") + "</td>";
           }
-          if (col === "image_url") {
-            return val
-              ? '<td><img src="' + escapeHtml(val) + '" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:6px;"></td>'
-              : '<td style="color:#66756C;font-size:0.8rem;">Belum ada</td>';
+          if (col === "images") {
+            var imgs = Array.isArray(val) ? val : parseImagesField(val);
+            if (!imgs.length) return '<td style="color:#66756C;font-size:0.8rem;">None</td>';
+            var thumb = '<img src="' + escapeHtml(imgs[0]) + '" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:6px;">';
+            var badge = imgs.length > 1 ? '<span class="image-count-badge">+' + (imgs.length - 1) + '</span>' : "";
+            return '<td><span style="position:relative;display:inline-block;">' + thumb + badge + "</span></td>";
           }
           return "<td>" + escapeHtml(truncate(val)) + "</td>";
         })
@@ -383,7 +534,7 @@ $(function () {
         "<tr>" + cells +
           '<td class="row-actions">' +
             '<button class="edit-btn" data-list="' + listKey + '" data-id="' + item.id + '">Edit</button>' +
-            '<button class="delete-btn" data-list="' + listKey + '" data-id="' + item.id + '">Hapus</button>' +
+            '<button class="delete-btn" data-list="' + listKey + '" data-id="' + item.id + '">Delete</button>' +
           "</td>" +
         "</tr>"
       );
@@ -400,7 +551,6 @@ $(function () {
 
   Object.keys(LIST_CONFIG).forEach(loadList);
 
-  /* ---------- Modal fields + live preview ---------- */
 
   function collectItemFormValues() {
     var values = {};
@@ -427,41 +577,18 @@ $(function () {
       var $label = $("<label>").text(f.label);
       var $input;
 
-      if (f.type === "image") {
-        var $hidden = $("<input>").attr("type", "hidden").attr("data-field", f.name).val(value || "");
-        var $preview = $("<img>")
-          .css({ maxWidth: "160px", display: value ? "block" : "none", marginBottom: "8px", borderRadius: "8px" })
-          .attr("src", value || "");
-        var $fileInput = $("<input>").attr("type", "file").attr("accept", "image/jpeg,image/png,image/webp");
-        var $status = $("<span>").css({ fontSize: "0.8rem", color: "#66756C", marginLeft: "8px" });
+      if (f.type === "images") {
+        var $hidden = $("<input>").attr("type", "hidden").attr("data-field", f.name);
+        var initialImages = parseImagesField(value);
+        $hidden.val(JSON.stringify(initialImages));
 
-        $fileInput.on("change", function () {
-          var file = this.files[0];
-          if (!file) return;
-          var formData = new FormData();
-          formData.append("image", file);
-          $status.text("Mengupload...");
-
-          $.ajax({
-            url: "/admin/api/upload",
-            method: "POST",
-            data: formData,
-            processData: false,
-            contentType: false,
-          })
-            .done(function (res) {
-              $hidden.val(res.url);
-              $preview.attr("src", res.url).show();
-              $status.text("Berhasil ✓");
-              setTimeout(function () { $status.text(""); }, 2000);
-              updateItemPreview();
-            })
-            .fail(function () {
-              $status.text("Gagal upload.");
-            });
+        var $managerBox = $('<div class="image-manager"></div>');
+        buildImageManager($managerBox, initialImages, function (images) {
+          $hidden.val(JSON.stringify(images));
+          updateItemPreview();
         });
 
-        $container.append($label).append($preview).append($fileInput).append($status).append($hidden);
+        $container.append($label).append($managerBox).append($hidden);
         return;
       }
 
@@ -469,7 +596,7 @@ $(function () {
         $input = $("<textarea>").attr("rows", 3).attr("data-field", f.name).val(value || "");
       } else if (f.type === "store-select") {
         $input = $("<select>").attr("data-field", f.name);
-        $input.append($("<option>").val("").text("— Pilih Toko —"));
+        $input.append($("<option>").val("").text("— Select Store —"));
         STORES_CACHE.forEach(function (store) {
           $input.append($("<option>").val(store.id).text(store.nama));
         });
@@ -477,9 +604,11 @@ $(function () {
       } else if (f.type === "select") {
         $input = $("<select>").attr("data-field", f.name);
         f.options.forEach(function (opt) {
-          $input.append($("<option>").val(opt).text(opt));
+          var optionValue = typeof opt === "object" ? opt.value : opt;
+          var optionLabel = typeof opt === "object" ? opt.label : opt;
+          $input.append($("<option>").val(optionValue).text(optionLabel));
         });
-        $input.val(value || f.options[0]);
+        $input.val(value || (typeof f.options[0] === "object" ? f.options[0].value : f.options[0]));
       } else {
         $input = $("<input>").attr("type", f.type).attr("data-field", f.name);
         if (f.step) $input.attr("step", f.step);
@@ -495,7 +624,8 @@ $(function () {
 
   function openItemModal(listKey, item) {
     var config = LIST_CONFIG[listKey];
-    $("#itemModalTitle").text((item ? "Edit " : "Tambah ") + config.title);
+    SLIDE_STATE.item = 0;
+    $("#itemModalTitle").text((item ? "Edit " : "Add ") + config.title);
     $("#itemId").val(item ? item.id : "");
     $("#itemListKey").val(listKey);
     buildModalFields(listKey, item);
@@ -507,9 +637,10 @@ $(function () {
     $("#itemModal").removeClass("open");
     $("#itemFormFields").empty();
     $("#itemPreview").empty();
+    SLIDE_STATE.item = 0;
+    SLIDE_IMAGES.item = [];
   }
 
-  // Live-update the modal preview as any field changes.
   $("#itemFormFields").on("input change", "[data-field]", updateItemPreview);
 
   $(document).on("click", ".add-item-btn", function () {
@@ -532,13 +663,13 @@ $(function () {
     var id = $(this).data("id");
     var config = LIST_CONFIG[listKey];
 
-    if (!confirm("Hapus item ini?")) return;
+    if (!confirm("Delete this item?")) return;
 
     $.ajax({ url: "/admin/api/" + config.endpoint + "/" + id, method: "DELETE" })
       .done(function () { loadList(listKey); })
       .fail(function (xhr) {
         handleAuthFail(xhr);
-        alert("Gagal menghapus.");
+        alert("Unable to delete the item.");
       });
   });
 
@@ -572,35 +703,7 @@ $(function () {
       })
       .fail(function (xhr) {
         handleAuthFail(xhr);
-        alert("Gagal menyimpan.");
-      });
-  });
-
-  /* ---------- About section's dedicated image upload (kept from before) ---------- */
-
-  $("#aboutImageFile").on("change", function () {
-    var file = this.files[0];
-    if (!file) return;
-    var formData = new FormData();
-    formData.append("image", file);
-    $("#aboutImageStatus").text("Mengupload...");
-
-    $.ajax({
-      url: "/admin/api/upload",
-      method: "POST",
-      data: formData,
-      processData: false,
-      contentType: false,
-    })
-      .done(function (res) {
-        $("#aboutImageUrl").val(res.url);
-        $("#aboutImagePreview").attr("src", res.url).show();
-        $("#aboutImageStatus").text("Berhasil ✓");
-        setTimeout(function () { $("#aboutImageStatus").text(""); }, 2000);
-        updateContentPreview("about");
-      })
-      .fail(function () {
-        $("#aboutImageStatus").text("Gagal upload.");
+        alert("Unable to save the item.");
       });
   });
 
