@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const bcrypt = require("bcrypt");
 const Database = require("better-sqlite3");
 
 const dbPath = path.join(__dirname, "data", "app.db");
@@ -254,6 +255,29 @@ if (db.prepare("SELECT COUNT(*) AS c FROM faqs").get().c === 0) {
     { question: "Bagaimana cara memberi ulasan?", answer: "Setelah login, kamu dapat menekan tombol Tulis Ulasan pada bagian testimoni pelanggan.", sort_order: 5 },
     { question: "Apakah semua toko menerima pesanan online?", answer: "Tidak semua, status penerimaan pesanan online ditampilkan pada masing-masing halaman toko.", sort_order: 6 },
   ].forEach((f) => insertFaq.run(f));
+}
+
+if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const existingAdmin = db
+    .prepare("SELECT id FROM admin_users WHERE username = ?")
+    .get(adminUsername);
+
+  const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD, 12);
+
+  if (!existingAdmin) {
+    db.prepare("INSERT INTO admin_users (username, password_hash) VALUES (?, ?)").run(
+      adminUsername,
+      hash
+    );
+    console.log(`Admin user "${adminUsername}" created from environment variables.`);
+  } else {
+    db.prepare("UPDATE admin_users SET password_hash = ? WHERE username = ?").run(
+      hash,
+      adminUsername
+    );
+    console.log(`Admin user "${adminUsername}" password synced from environment variables.`);
+  }
 }
 
 module.exports = db;
