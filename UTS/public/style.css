@@ -218,7 +218,7 @@ p{margin:0 0 8px;}
   height:100%;
   object-fit:cover;
 }
-.store-card .card-body{padding:18px;}
+.store-card .card-body{padding:18px;position:relative;}
 .store-card h3{font-size:1.05rem;margin-bottom:4px;}
 .store-card .meta{font-size:0.85rem;color:var(--text-muted);margin-bottom:4px;}
 .store-card .rating{
