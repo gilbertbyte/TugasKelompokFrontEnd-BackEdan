@@ -1,15 +1,42 @@
 const express = require("express");
 const db = require("../db");
 const { requireAuth } = require("../middleware/auth");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 const router = express.Router();
 
-
 router.use(requireAuth);
 
+const uploadDir = path.join(__dirname, "..", "public", "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, "store-" + unique + ext);
+  },
+});
 
+const upload = multer({
+  storage,
+  limits: { fileSize: 3 * 1024 * 1024 }, // max 3MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error("Hanya file JPG, PNG, atau WEBP yang diizinkan."));
+    }
+    cb(null, true);
+  },
+});
 
+router.post("/api/upload", upload.single("image"), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Tidak ada file yang diupload." });
+  res.json({ url: "/uploads/" + req.file.filename });
+});
 
 const ALLOWED_CONTENT_KEYS = [
   "site",
@@ -56,8 +83,6 @@ router.put("/api/content/:key", (req, res) => {
   const current = JSON.parse(existing.data);
   const incoming = req.body || {};
 
-  
-  
   const merged = { ...current };
   Object.keys(current).forEach((field) => {
     if (Object.prototype.hasOwnProperty.call(incoming, field)) {
@@ -73,18 +98,12 @@ router.put("/api/content/:key", (req, res) => {
   res.json(merged);
 });
 
-
-
-
-
 function registerListCrud({ path: routePath, table, fields, requiredField }) {
-  
   router.get(`/api/${routePath}`, (req, res) => {
     const rows = db.prepare(`SELECT * FROM ${table} ORDER BY sort_order ASC, id ASC`).all();
     res.json(rows);
   });
 
-  
   router.post(`/api/${routePath}`, (req, res) => {
     const body = req.body || {};
     if (!body[requiredField] || !String(body[requiredField]).trim()) {
@@ -107,7 +126,6 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
     res.status(201).json(created);
   });
 
-  
   router.put(`/api/${routePath}/:id`, (req, res) => {
     const { id } = req.params;
     const existing = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id);
@@ -126,7 +144,6 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
     res.json(updated);
   });
 
-  
   router.delete(`/api/${routePath}/:id`, (req, res) => {
     const { id } = req.params;
     const existing = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id);
@@ -150,6 +167,7 @@ registerListCrud({
     { name: "rating", default: 0 },
     { name: "ulasan_count", default: 0 },
     { name: "sort_order", default: 0 },
+    { name: "image_url", default: "" },
   ],
 });
 
