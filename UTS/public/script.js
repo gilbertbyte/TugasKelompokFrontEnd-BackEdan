@@ -117,9 +117,12 @@ $(function () {
   function renderMenu(list) {
     var $grid = $("#menuGrid").empty();
     list.forEach(function (m) {
-      $grid.append(
-        '<div class="menu-card">' +
-          '<div class="card-media">Ceritanya gambar Menu</div>' +
+      var media = m.image_url
+        ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
+           : '<div class="card-media">Ceritanya gambar Menu</div>';
+           $grid.append(
+          '<div class="menu-card">' +
+          media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(m.nama) + "</h3>" +
             '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +

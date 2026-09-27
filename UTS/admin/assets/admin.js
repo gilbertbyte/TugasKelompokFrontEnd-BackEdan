@@ -97,6 +97,7 @@ $(function () {
         { name: "nama", label: "Nama Menu", type: "text", required: true },
         { name: "deskripsi", label: "Deskripsi", type: "text" },
         { name: "harga", label: "Harga (contoh: Rp 15.000)", type: "text" },
+        { name: "image_url", label: "Gambar Menu", type: "image" },
       ],
     },
     testimonials: {
