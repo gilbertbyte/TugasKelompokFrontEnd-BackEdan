@@ -205,6 +205,7 @@ p{margin:0 0 8px;}
   border-radius:var(--radius-md);
   overflow:hidden;
   border:1px solid #EAE3D6;
+  position:relative;
 }
 .store-card .card-media{
   height:140px;
@@ -254,6 +255,18 @@ p{margin:0 0 8px;}
   transition:background .15s ease, transform .15s ease;
 }
 .add-btn:hover{background:var(--mustard-dark);transform:scale(1.06);}
+
+.wishlist-btn{
+  position:absolute;top:10px;right:10px;z-index:2;
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(255,255,255,.9);
+  border:none;font-size:1.1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--pink-text);
+  transition:transform .15s ease, background .15s ease;
+}
+.wishlist-btn:hover{transform:scale(1.1);background:var(--white);}
+.wishlist-btn.saved{background:var(--pink-text);color:var(--white);}
 
 
 .about-grid{

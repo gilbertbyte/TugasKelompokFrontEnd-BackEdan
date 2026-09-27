@@ -1,6 +1,8 @@
 $(function () {
 
   var STATE = { stores: [], menu: [], testimonials: [], faqs: [] };
+  var WISHLIST_IDS = { menu: {}, store: {} };
+  var IS_LOGGED_IN = false;
 
   
 
@@ -21,6 +23,8 @@ $(function () {
     .fail(function () {
       console.error("Could not load site content from the server.");
     });
+
+  checkLoginStatus();
 
   
 
@@ -100,6 +104,11 @@ $(function () {
 
   
 
+  function wishlistBtnHtml(type, id) {
+    var isSaved = !!WISHLIST_IDS[type][id];
+    return '<button class="wishlist-btn' + (isSaved ? ' saved' : '') + '" data-type="' + type + '" data-id="' + id + '" title="Simpan ke List">' + (isSaved ? "♥" : "♡") + '</button>';
+  }
+
   function renderTokoPopuler(list) {
     var $grid = $("#tokoPopulerGrid").empty();
     list.forEach(function (t) {
@@ -110,7 +119,8 @@ $(function () {
       ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
       : '<div class="card-media">Ceritanya gambar lokasi</div>';
       $grid.append(
-        '<div class="store-card">' +
+        '<div class="store-card" style="position:relative;">' +
+        wishlistBtnHtml("store", t.id) +
         media +
          '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
@@ -131,6 +141,7 @@ $(function () {
         : '<div class="card-media">Ceritanya gambar Menu</div>';
       $grid.append(
         '<div class="menu-card">' +
+          wishlistBtnHtml("menu", m.id) +
           media +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(m.nama) + "</h3>" +
@@ -164,7 +175,8 @@ $(function () {
       var buka = t.status === "Buka";
       var statusClass = buka ? "status-open" : "status-closed";
       $grid.append(
-        '<div class="store-card">' +
+        '<div class="store-card" style="position:relative;">' +
+          wishlistBtnHtml("store", t.id) +
           '<div class="card-body">' +
             "<h3>" + escapeHtml(t.nama) + "</h3>" +
             '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
@@ -285,16 +297,35 @@ $(function () {
   }
 
   function loginAs(nama, email) {
+    IS_LOGGED_IN = true;
     $("#loginBtn").hide();
     $("#userAvatar").text(nama.charAt(0).toUpperCase());
     $("#userDropdownName").text(nama);
     $("#userDropdownEmail").text(email);
     $("#userDropdown").addClass("show");
+    $("#navWishlist").show();
+    loadWishlistIds();
   }
 
-  function logout() {
+  function logoutUI() {
+    IS_LOGGED_IN = false;
+    WISHLIST_IDS = { menu: {}, store: {} };
     $("#userDropdown").removeClass("show");
     $("#loginBtn").show();
+    $("#navWishlist").hide();
+    $("#wishlist").hide();
+    renderMenu(STATE.menu);
+    renderTokoPopuler(STATE.stores.slice(0, 3));
+    renderTokoHasil(STATE.stores);
+  }
+
+  function checkLoginStatus() {
+    $.get("/api/user/me")
+      .done(function (res) {
+        if (res.loggedIn) {
+          loginAs(res.nama, res.email);
+        }
+      });
   }
 
   $("#loginBtn").on("click", function () {
@@ -325,8 +356,21 @@ $(function () {
       $("#loginError").text("Email dan password wajib diisi.");
       return;
     }
-    loginAs(email.split("@")[0], email);
-    closeModal();
+    $.ajax({
+      url: "/api/user/login",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ email: email, password: pass }),
+    })
+      .done(function (res) {
+        loginAs(res.nama, res.email);
+        closeModal();
+        $("#loginForm")[0].reset();
+      })
+      .fail(function (xhr) {
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Login gagal.";
+        $("#loginError").text(msg);
+      });
   });
 
   $("#registerForm").on("submit", function (e) {
@@ -338,19 +382,135 @@ $(function () {
       $("#registerError").text("Lengkapi semua kolom (password minimal 8 karakter).");
       return;
     }
-    loginAs(nama, email);
-    closeModal();
+    $.ajax({
+      url: "/api/user/register",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ nama: nama, email: email, password: pass }),
+    })
+      .done(function (res) {
+        loginAs(res.nama, res.email);
+        closeModal();
+        $("#registerForm")[0].reset();
+      })
+      .fail(function (xhr) {
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Registrasi gagal.";
+        $("#registerError").text(msg);
+      });
   });
 
   $("#switchAccountBtn").on("click", function () {
-    logout();
-    openModal("login");
+    $.post("/api/user/logout", function () {
+      logoutUI();
+      openModal("login");
+    });
   });
 
-  $("#logoutUserBtn").on("click", logout);
+  $("#logoutUserBtn").on("click", function () {
+    $.post("/api/user/logout", function () {
+      logoutUI();
+    });
+  });
 
   $("#tulisUlasanBtn").on("click", function () {
     alert("Demo: form Tulis Ulasan akan tampil di sini.");
+  });
+
+  
+
+  function loadWishlistIds() {
+    $.get("/api/wishlist/ids")
+      .done(function (rows) {
+        WISHLIST_IDS = { menu: {}, store: {} };
+        rows.forEach(function (r) {
+          WISHLIST_IDS[r.item_type][r.item_id] = true;
+        });
+        renderMenu(STATE.menu);
+        renderTokoPopuler(STATE.stores.slice(0, 3));
+        renderTokoHasil(STATE.stores);
+        loadWishlistSection();
+      });
+  }
+
+  function loadWishlistSection() {
+    $.get("/api/wishlist")
+      .done(function (data) {
+        var menu = data.menu || [];
+        var stores = data.stores || [];
+
+        var $menuGrid = $("#wishlistMenuGrid").empty();
+        menu.forEach(function (m) {
+          var media = m.image_url
+            ? '<div class="card-media"><img src="' + escapeHtml(m.image_url) + '" alt="' + escapeHtml(m.nama) + '"></div>'
+            : '<div class="card-media">Ceritanya gambar Menu</div>';
+          $menuGrid.append(
+            '<div class="menu-card">' +
+              wishlistBtnHtml("menu", m.id) +
+              media +
+              '<div class="card-body">' +
+                "<h3>" + escapeHtml(m.nama) + "</h3>" +
+                '<p class="desc">' + escapeHtml(m.store_nama ? "Dari: " + m.store_nama : (m.deskripsi || "")) + "</p>" +
+                '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
+              "</div>" +
+            "</div>"
+          );
+        });
+
+        var $storeGrid = $("#wishlistStoreGrid").empty();
+        stores.forEach(function (t) {
+          var media = t.image_url
+            ? '<div class="card-media"><img src="' + escapeHtml(t.image_url) + '" alt="' + escapeHtml(t.nama) + '"></div>'
+            : '<div class="card-media">Ceritanya gambar lokasi</div>';
+          $storeGrid.append(
+            '<div class="store-card" style="position:relative;">' +
+              wishlistBtnHtml("store", t.id) +
+              media +
+              '<div class="card-body">' +
+                "<h3>" + escapeHtml(t.nama) + "</h3>" +
+                '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
+              "</div>" +
+            "</div>"
+          );
+        });
+
+        $("#wishlistEmpty").toggle(menu.length === 0 && stores.length === 0);
+      });
+  }
+
+  $(document).on("click", ".wishlist-btn", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!IS_LOGGED_IN) {
+      openModal("login");
+      return;
+    }
+
+    var $btn = $(this);
+    var type = $btn.data("type");
+    var id = $btn.data("id");
+    var isSaved = !!WISHLIST_IDS[type][id];
+
+    if (isSaved) {
+      $.ajax({ url: "/api/wishlist/" + type + "/" + id, method: "DELETE" }).done(function () {
+        delete WISHLIST_IDS[type][id];
+        loadWishlistIds();
+      });
+    } else {
+      $.ajax({
+        url: "/api/wishlist",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({ item_type: type, item_id: id }),
+      }).done(function () {
+        WISHLIST_IDS[type][id] = true;
+        loadWishlistIds();
+      });
+    }
+  });
+
+  $("#navWishlist").on("click", function () {
+    $("#wishlist").show();
   });
 
 });
