@@ -2,13 +2,29 @@ $(function () {
 
   var IS_LOGGED_IN = false;
 
-  function firstImage(raw) {
-    var arr = raw;
-    if (typeof raw === "string" && raw) {
-      try { arr = JSON.parse(raw); } catch (e) { arr = []; }
-    }
-    if (!Array.isArray(arr)) return null;
-    return arr[0] || null;
+  function imageList(value) {
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (typeof value !== "string" || !value) return [];
+    try {
+      var parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.filter(Boolean);
+    } catch (e) {}
+    return [value];
+  }
+
+  function imageMediaHtml(value, alt, placeholder) {
+    var images = imageList(value);
+    if (!images.length) return '<div class="card-media">' + placeholder + '</div>';
+    var slides = images.map(function (url, index) {
+      return '<img class="image-slide' + (index === 0 ? ' active' : '') + '" src="' + escapeHtml(url) +
+        '" alt="' + escapeHtml(alt) + '" aria-hidden="' + (index !== 0) + '">';
+    }).join("");
+    var controls = images.length > 1
+      ? '<button class="image-slide-arrow image-slide-prev" type="button" data-direction="-1" aria-label="Gambar sebelumnya">‹</button>' +
+        '<button class="image-slide-arrow image-slide-next" type="button" data-direction="1" aria-label="Gambar berikutnya">›</button>' +
+        '<span class="image-slide-counter" aria-live="polite">1 / ' + images.length + '</span>'
+      : "";
+    return '<div class="card-media has-slideshow"><div class="image-slideshow">' + slides + controls + '</div></div>';
   }
 
   function escapeHtml(str) {
@@ -170,10 +186,7 @@ $(function () {
 
         var $menuGrid = $("#wishlistMenuGrid").empty();
         menu.forEach(function (m) {
-          var img = firstImage(m.images);
-          var media = img
-            ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(m.nama) + '"></div>'
-            : '<div class="card-media">Ceritanya gambar Menu</div>';
+          var media = imageMediaHtml(m.image_url || m.images, m.nama, "Ceritanya gambar Menu");
           $menuGrid.append(
             '<div class="menu-card">' +
               media +
@@ -189,10 +202,7 @@ $(function () {
 
         var $storeGrid = $("#wishlistStoreGrid").empty();
         stores.forEach(function (t) {
-          var img = firstImage(t.images);
-          var media = img
-            ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-            : '<div class="card-media">Ceritanya gambar lokasi</div>';
+          var media = imageMediaHtml(t.image_url || t.images, t.nama, "Ceritanya gambar lokasi");
           $storeGrid.append(
             '<div class="store-card">' +
               media +
@@ -223,6 +233,17 @@ $(function () {
     $.ajax({ url: "/api/wishlist/" + type + "/" + id, method: "DELETE" }).done(function () {
       loadWishlist();
     });
+  });
+
+  $(document).on("click", ".image-slide-arrow", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var $slideshow = $(this).closest(".image-slideshow");
+    var $slides = $slideshow.find(".image-slide");
+    var activeIndex = $slides.index($slides.filter(".active"));
+    var nextIndex = (activeIndex + Number($(this).data("direction")) + $slides.length) % $slides.length;
+    $slides.removeClass("active").attr("aria-hidden", "true").eq(nextIndex).addClass("active").attr("aria-hidden", "false");
+    $slideshow.find(".image-slide-counter").text((nextIndex + 1) + " / " + $slides.length);
   });
 
 });

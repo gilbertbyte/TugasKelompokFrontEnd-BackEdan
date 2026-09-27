@@ -82,7 +82,11 @@ router.get("/api/content/:key", (req, res) => {
   }
   const row = db.prepare("SELECT data FROM content_blocks WHERE key = ?").get(key);
   if (!row) return res.status(404).json({ error: "Content section not found." });
-  res.json(JSON.parse(row.data));
+  const data = JSON.parse(row.data);
+  if (key === "about" && data.images === undefined) {
+    data.images = data.image_url ? [data.image_url] : [];
+  }
+  res.json(data);
 });
 
 router.put("/api/content/:key", (req, res) => {
@@ -98,9 +102,27 @@ router.put("/api/content/:key", (req, res) => {
   const incoming = req.body || {};
 
   const merged = { ...current };
-  Object.keys(current).forEach((field) => {
+  const fields = Object.keys(current);
+  if (key === "about" && !fields.includes("images")) fields.push("images");
+  fields.forEach((field) => {
     if (Object.prototype.hasOwnProperty.call(incoming, field)) {
-      merged[field] = String(incoming[field] ?? "");
+      if (field === "images") {
+        const value = incoming[field];
+        if (Array.isArray(value)) {
+          merged[field] = value.filter((image) => typeof image === "string" && image);
+        } else if (typeof value === "string") {
+          try {
+            const parsed = JSON.parse(value);
+            merged[field] = Array.isArray(parsed) ? parsed : value ? [value] : [];
+          } catch (err) {
+            merged[field] = value ? [value] : [];
+          }
+        } else {
+          merged[field] = [];
+        }
+      } else {
+        merged[field] = String(incoming[field] ?? "");
+      }
     }
   });
 
@@ -131,6 +153,7 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
       const def = fields.find((f) => f.name === c);
       let val = body[c] !== undefined ? body[c] : def.default;
       if (def.nullable && val === "") val = null;
+      if (Array.isArray(val)) val = JSON.stringify(val);
       values[c] = val;
     });
 
@@ -155,6 +178,7 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
       const def = fields.find((f) => f.name === c);
       let val = body[c] !== undefined ? body[c] : existing[c];
       if (def.nullable && val === "") val = null;
+      if (Array.isArray(val)) val = JSON.stringify(val);
       values[c] = val;
     });
 
@@ -180,9 +204,8 @@ registerListCrud({
   fields: [
     { name: "nama", default: "" },
     { name: "alamat", default: "" },
-    { name: "jarak", default: "" },
     { name: "jam_buka", default: "" },
-    { name: "status", default: "Buka" },
+    { name: "jam_tutup", default: "" },
     { name: "rating", default: 0 },
     { name: "ulasan_count", default: 0 },
     { name: "sort_order", default: 0 },

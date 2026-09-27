@@ -284,6 +284,8 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 
 .pv-slideshow{position:relative;margin-bottom:10px;border-radius:var(--radius-sm);overflow:hidden;}
 .pv-slideshow .pv-img{margin-bottom:0;max-height:120px;}
+.pv-slideshow .pv-img{display:none;}
+.pv-slideshow .pv-img.active{display:block;}
 .pv-slide-arrow{
   position:absolute;top:50%;transform:translateY(-50%);
   width:24px;height:24px;border-radius:50%;
@@ -335,6 +337,13 @@ h1,h2,h3{font-family:'Fraunces',serif;color:var(--green-deep);margin:0;}
 }
 .image-manager-add-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .image-manager-status{font-size:.8rem;color:var(--green-dark);font-weight:600;}
+.image-manager-remove{
+  background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);
+  color:var(--pink-text);cursor:pointer;
+}
+.image-manager-remove:hover{background:#FCEFF1;}
+.image-manager-add-row input[type="file"]{width:auto;max-width:100%;}
+.image-manager-viewer{flex:none;}
 
 .image-count-badge{
   position:absolute;bottom:-4px;right:-4px;
