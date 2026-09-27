@@ -97,9 +97,11 @@ router.put("/api/content/:key", (req, res) => {
   const current = JSON.parse(existing.data);
   const incoming = req.body || {};
 
-  const merged = { ...current, ...incoming };
-  Object.keys(merged).forEach((field) => {
-    merged[field] = String(merged[field] ?? "");
+  const merged = { ...current };
+  Object.keys(current).forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(incoming, field)) {
+      merged[field] = String(incoming[field] ?? "");
+    }
   });
 
   db.prepare("UPDATE content_blocks SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE key = ?").run(
@@ -127,7 +129,9 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
     const values = {};
     columns.forEach((c) => {
       const def = fields.find((f) => f.name === c);
-      values[c] = body[c] !== undefined ? body[c] : def.default;
+      let val = body[c] !== undefined ? body[c] : def.default;
+      if (def.nullable && val === "") val = null;
+      values[c] = val;
     });
 
     const stmt = db.prepare(
@@ -148,7 +152,10 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
     const setClause = columns.map((c) => `${c} = @${c}`).join(", ");
     const values = { id };
     columns.forEach((c) => {
-      values[c] = body[c] !== undefined ? body[c] : existing[c];
+      const def = fields.find((f) => f.name === c);
+      let val = body[c] !== undefined ? body[c] : existing[c];
+      if (def.nullable && val === "") val = null;
+      values[c] = val;
     });
 
     db.prepare(`UPDATE ${table} SET ${setClause} WHERE id = @id`).run(values);
@@ -179,7 +186,7 @@ registerListCrud({
     { name: "rating", default: 0 },
     { name: "ulasan_count", default: 0 },
     { name: "sort_order", default: 0 },
-    { name: "images", default: "[]" },
+    { name: "image_url", default: "" },
   ],
 });
 
@@ -192,8 +199,8 @@ registerListCrud({
     { name: "deskripsi", default: "" },
     { name: "harga", default: "" },
     { name: "sort_order", default: 0 },
-    { name: "images", default: "[]" },
-    { name: "store_id", default: null },
+    { name: "store_id", default: null, nullable: true },
+    { name: "image_url", default: "" },
   ],
 });
 
@@ -207,6 +214,7 @@ registerListCrud({
     { name: "waktu", default: "" },
     { name: "stars", default: 5 },
     { name: "sort_order", default: 0 },
+    { name: "approved", default: 0 },
   ],
 });
 

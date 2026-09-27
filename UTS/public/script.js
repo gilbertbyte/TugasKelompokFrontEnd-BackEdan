@@ -1,229 +1,123 @@
 $(function () {
+// placeholder
+  var tokoPopuler = [
+    { nama: "Es Pisang Ijo Bu Ida", jam: "08.00 - 21.00", rating: "4.8", buka: true },
+    { nama: "Pisang Ijo Daeng Sija", jam: "09.00 - 20.00", rating: "4.6", buka: true },
+    { nama: "Pisang Ijo Ratu Rasa", jam: "10.00 - 18.00", rating: "4.5", buka: false }
+  ];
 
-  var STATE = { stores: [], menu: [], testimonials: [], faqs: [] };
-  var WISHLIST_IDS = { menu: {}, store: {} };
-  var IS_LOGGED_IN = false;
-  var currentUser = null;
+  var menuUnggulan = [
+    { nama: "Pisang Ijo Original", desc: "Saus santan, bubur sumsum", harga: "Rp 15.000" },
+    { nama: "Pisang Ijo Cokelat", desc: "Topping cokelat leleh", harga: "Rp 17.000" },
+    { nama: "Pisang Ijo Durian", desc: "Dengan durian asli", harga: "Rp 20.000" },
+    { nama: "Pisang Ijo Keju", desc: "Taburan keju parut", harga: "Rp 18.000" }
+  ];
 
-  $.get("/api/site-content")
-    .done(function (data) {
-      applyContent(data.content || {});
-      STATE.stores = data.stores || [];
-      STATE.menu = data.menu || [];
-      STATE.testimonials = data.testimonials || [];
-      STATE.faqs = data.faqs || [];
+  var testimoni = [
+    { nama: "Rangga", ulasan: "Porem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.", waktu: "2 hari yang lalu" },
+    { nama: "Salsabila", ulasan: "Porem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.", waktu: "5 hari yang lalu" },
+    { nama: "Fajar", ulasan: "Porem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.", waktu: "1 minggu yang lalu" }
+  ];
 
-      renderTokoPopuler(STATE.stores.slice(0, 3));
-      renderMenu(STATE.menu);
-      renderTestimoni(STATE.testimonials);
-      renderTokoHasil(STATE.stores);
-      renderFaqs(STATE.faqs);
-    })
-    .fail(function () {
-      console.error("Could not load site content from the server.");
-    });
+  var tokoHasil = [
+    { nama: "Es Pisang Ijo Bu Ida", alamat: "Jl. Pengayoman, Makassar", jarak: "1.2 km", buka: true, jam: "08.00 - 21.00", rating: "4.8", ulasan: 128 },
+    { nama: "Pisang Ijo Daeng Sija", alamat: "Jl. Boulevard, Makassar", jarak: "2.4 km", buka: true, jam: "09.00 - 20.00", rating: "4.6", ulasan: 96 },
+    { nama: "Pisang Ijo Ratu Rasa", alamat: "Jl. Sultan Alauddin, Makassar", jarak: "3.1 km", buka: false, jam: "10.00 - 18.00", rating: "4.5", ulasan: 54 }
+  ];
 
-  checkLoginStatus();
+  /* ---------- Renderers ---------- */
 
-  function firstImage(raw) {
-    var arr = raw;
-    if (typeof raw === "string" && raw) {
-      try { arr = JSON.parse(raw); } catch (e) { arr = []; }
-    }
-    if (!Array.isArray(arr)) return null;
-    return arr[0] || null;
-  }
-
-  function applyContent(c) {
-    if (c.site) {
-      $("#pageTitle").text(c.site.site_title + " — Platform Kuliner Makassar");
-      $("#siteLogo, #footerLogo").text(c.site.logo_text);
-    }
-    if (c.hero) {
-      $("#heroBadge").text(c.hero.badge);
-      $("#heroHeading").text(c.hero.heading);
-      $("#heroSubheading").text(c.hero.subheading);
-      $("#heroCtaPrimary").text(c.hero.cta_primary);
-      $("#heroCtaSecondary").text(c.hero.cta_secondary);
-    }
-    if (c.toko_populer) {
-      $("#tokoPopulerHeading").text(c.toko_populer.heading);
-      $("#tokoPopulerSub").text(c.toko_populer.subheading);
-      $("#tokoPopulerLink").text(c.toko_populer.link_text);
-    }
-    if (c.menu_section) {
-      $("#menuSectionHeading").text(c.menu_section.heading);
-      $("#menuSectionSub").text(c.menu_section.subheading);
-    }
-    if (c.about) {
-      var aboutImg = firstImage(c.about.images);
-      if (aboutImg) {
-        $("#aboutMediaText").parent().html(
-          '<img src="' + escapeHtml(aboutImg) + '" alt="Tentang Pisang Ijo" style="width:100%;height:100%;object-fit:cover;border-radius:24px;">'
-        );
-      } else {
-        $("#aboutMediaText").text(c.about.media_text);
-      }
-      $("#aboutEyebrow").text(c.about.eyebrow);
-      $("#aboutHeading").text(c.about.heading);
-      $("#aboutDescription").text(c.about.description);
-      $("#aboutPill1").text(c.about.pill_1);
-      $("#aboutPill2").text(c.about.pill_2);
-      $("#aboutPill3").text(c.about.pill_3);
-    }
-    if (c.history) {
-      $("#historyHeading").text(c.history.heading);
-      $("#historyText").text(c.history.text);
-    }
-    if (c.testimonial_section) {
-      $("#testimonialEyebrow").text(c.testimonial_section.eyebrow);
-      $("#testimonialHeading").text(c.testimonial_section.heading);
-      $("#tulisUlasanBtn").text(c.testimonial_section.cta);
-    }
-    if (c.cari_toko) {
-      $("#cariTokoEyebrow").text(c.cari_toko.eyebrow);
-      $("#cariTokoHeading").text(c.cari_toko.heading);
-      $("#cariTokoSub").text(c.cari_toko.subheading);
-    }
-    if (c.faq_section) {
-      $("#faqEyebrow").text(c.faq_section.eyebrow);
-      $("#faqHeading").text(c.faq_section.heading);
-    }
-    if (c.contact) {
-      $("#contactEyebrow").text(c.contact.eyebrow);
-      $("#contactHeading").text(c.contact.heading);
-      $("#contactEmail").text("Email support demo : " + c.contact.email);
-      $("#contactWhatsapp").text(c.contact.whatsapp);
-      $("#contactNote").text(c.contact.note);
-      $("#contactHours").text(c.contact.hours);
-    }
-    if (c.footer) {
-      $("#footerTagline").text(c.footer.tagline);
-      $("#footerSocial").text(c.footer.social_text);
-      $("#footerHelpEmail").text(c.footer.help_email);
-      $("#footerHelpWhatsapp").text("WhatsApp CS demo: " + c.footer.help_whatsapp);
-      $("#footerLegalTerms").text(c.footer.legal_terms_label);
-      $("#footerLegalPrivacy").text(c.footer.legal_privacy_label);
-      $("#footerCopyright").html("&copy; " + c.footer.copyright);
-    }
-  }
-
-  function wishlistBtnHtml(type, id) {
-    var isSaved = !!WISHLIST_IDS[type][id];
-    return '<button class="wishlist-btn' + (isSaved ? ' saved' : '') + '" data-type="' + type + '" data-id="' + id + '" title="Simpan ke List">' + (isSaved ? "♥" : "♡") + '</button>';
-  }
-
-  function renderTokoPopuler(list) {
+  function renderTokoPopuler() {
     var $grid = $("#tokoPopulerGrid").empty();
-    list.forEach(function (t) {
-      var buka = t.status === "Buka";
-      var statusClass = buka ? "status-open" : "status-closed";
-      var statusText = buka ? "Buka sekarang" : "Tutup";
-      var img = firstImage(t.images);
-      var media = img
-        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-        : '<div class="card-media">Ceritanya gambar lokasi</div>';
-      $grid.append(
-        '<div class="store-card" data-store-id="' + t.id + '" style="position:relative;">' +
-          wishlistBtnHtml("store", t.id) +
-          media +
+    tokoPopuler.forEach(function (t) {
+      var statusClass = t.buka ? "status-open" : "status-closed";
+      var statusText = t.buka ? "Buka sekarang" : "Tutup";
+      var card = $(
+        '<div class="store-card">' +
+          '<div class="card-media">Ceritanya gambar lokasi</div>' +
           '<div class="card-body">' +
-            "<h3>" + escapeHtml(t.nama) + "</h3>" +
-            '<p class="meta">Jam Buka: ' + escapeHtml(t.jam_buka || "-") + "</p>" +
-            '<p class="' + statusClass + '">' + statusText + "</p>" +
-            '<span class="rating">★ ' + t.rating + "</span>" +
-          "</div>" +
-        "</div>"
+            '<h3>' + t.nama + '</h3>' +
+            '<p class="meta">Jam Buka: ' + t.jam + '</p>' +
+            '<p class="' + statusClass + '">' + statusText + '</p>' +
+            '<span class="rating">★ ' + t.rating + '</span>' +
+          '</div>' +
+        '</div>'
       );
+      $grid.append(card);
     });
   }
 
   function renderMenu(list) {
     var $grid = $("#menuGrid").empty();
     list.forEach(function (m) {
-      var img = firstImage(m.images);
-      var media = img
-        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(m.nama) + '"></div>'
-        : '<div class="card-media">Ceritanya gambar Menu</div>';
-
-      var storeInfo = m.store_nama
-        ? '<p class="menu-store-info">Tersedia di: <strong>' + escapeHtml(m.store_nama) + '</strong></p>' +
-          '<a href="#" class="link-arrow menu-toko-link" data-store-id="' + m.store_id + '">Lihat Toko Ini</a>'
-        : '<p class="menu-store-info">Toko belum ditentukan</p>';
-
-        $grid.append(
-          '<div class="menu-card">' +
-            media +
-            '<div class="card-body">' +
-              "<h3>" + escapeHtml(m.nama) + "</h3>" +
-              '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
-              '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
-              storeInfo +
-            "</div>" +
-          "</div>"
-        );
+      var card = $(
+        '<div class="menu-card">' +
+          '<div class="card-media">Ceritanya gambar Menu</div>' +
+          '<div class="card-body">' +
+            '<h3>' + m.nama + '</h3>' +
+            '<p class="desc">' + m.desc + '</p>' +
+            '<span class="price">' + m.harga + '</span>' +
+            '<button class="add-btn" title="Tambah ke keranjang">+</button>' +
+          '</div>' +
+        '</div>'
+      );
+      $grid.append(card);
     });
   }
 
-  function renderTestimoni(list) {
+  function renderTestimoni() {
     var $grid = $("#testimoniGrid").empty();
-    list.forEach(function (t) {
-      var stars = Math.max(0, Math.min(5, t.stars || 5));
-      $grid.append(
+    testimoni.forEach(function (t) {
+      var card = $(
         '<div class="testi-card">' +
-          '<div class="stars">' + "★".repeat(stars) + "</div>" +
-          '<div class="name">' + escapeHtml(t.nama) + "</div>" +
-          "<p>" + escapeHtml(t.ulasan || "") + "</p>" +
-          '<div class="when">' + escapeHtml(t.waktu || "") + "</div>" +
-        "</div>"
+          '<div class="stars">★★★★★</div>' +
+          '<div class="name">' + t.nama + '</div>' +
+          '<p>' + t.ulasan + '</p>' +
+          '<div class="when">' + t.waktu + '</div>' +
+        '</div>'
       );
+      $grid.append(card);
     });
   }
 
   function renderTokoHasil(list) {
     var $grid = $("#tokoHasilGrid").empty();
     list.forEach(function (t) {
-      var buka = t.status === "Buka";
-      var statusClass = buka ? "status-open" : "status-closed";
-      var img = firstImage(t.images);
-      var media = img
-        ? '<div class="card-media"><img src="' + escapeHtml(img) + '" alt="' + escapeHtml(t.nama) + '"></div>'
-        : "";
-      $grid.append(
-        '<div class="store-card" data-store-id="' + t.id + '" style="position:relative;">' +
-          wishlistBtnHtml("store", t.id) +
-          media +
+      var statusClass = t.buka ? "status-open" : "status-closed";
+      var statusText = t.buka ? "Buka" : "Tutup";
+      var card = $(
+        '<div class="store-card">' +
           '<div class="card-body">' +
-            "<h3>" + escapeHtml(t.nama) + "</h3>" +
-            '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
-            '<p class="meta">Jarak: ' + escapeHtml(t.jarak || "-") + "</p>" +
-            '<p class="' + statusClass + '">' + escapeHtml(t.status) + " &middot; " + escapeHtml(t.jam_buka || "") + "</p>" +
-            '<span class="rating">★ ' + t.rating + " (" + (t.ulasan_count || 0) + " ulasan)</span><br>" +
+            '<h3>' + t.nama + '</h3>' +
+            '<p class="meta">' + t.alamat + '</p>' +
+            '<p class="meta">Jarak: ' + t.jarak + '</p>' +
+            '<p class="' + statusClass + '">' + statusText + ' &middot; ' + t.jam + '</p>' +
+            '<span class="rating">★ ' + t.rating + ' (' + t.ulasan + ' ulasan)</span><br>' +
             '<a href="#" class="link-arrow" style="margin-top:10px;display:inline-block;">Lihat Detail</a>' +
-          "</div>" +
-        "</div>"
+          '</div>' +
+        '</div>'
       );
+      $grid.append(card);
     });
     $("#resultsCount").text(list.length);
   }
 
-  function renderFaqs(list) {
-    var $wrap = $("#faqAccordion").empty();
-    list.forEach(function (f) {
-      var $item = $(
-        '<div class="accordion-item">' +
-          '<button class="accordion-trigger">' + escapeHtml(f.question) + "</button>" +
-          '<div class="accordion-panel"><p>' + escapeHtml(f.answer || "") + "</p></div>" +
-        "</div>"
-      );
-      $wrap.append($item);
-    });
-    bindAccordion();
-  }
+  renderTokoPopuler();
+  renderMenu(menuUnggulan);
+  renderTestimoni();
+  renderTokoHasil(tokoHasil);
 
-  function escapeHtml(str) {
-    return $("<div>").text(str == null ? "" : str).html();
-  }
+  /* ---------- Hero search ---------- */
+
+  $("#heroSearchForm").on("submit", function (e) {
+    e.preventDefault();
+    var q = $("#heroSearchInput").val().trim();
+    $("#filterNama").val(q);
+    $("html, body").animate({ scrollTop: $("#cari-toko").offset().top - 80 }, 400);
+    applyFilter();
+  });
+
+  /* ---------- Filter / search section ---------- */
 
   function applyFilter() {
     var nama = $("#filterNama").val().trim().toLowerCase();
@@ -231,13 +125,13 @@ $(function () {
     var status = $("#filterStatus").val();
     var sort = $("#filterSort").val();
 
-    var filtered = STATE.stores.filter(function (t) {
+    var filtered = tokoHasil.filter(function (t) {
       var matchNama = !nama || t.nama.toLowerCase().indexOf(nama) !== -1;
-      var matchKota = !kota || (t.alamat || "").toLowerCase().indexOf(kota) !== -1;
+      var matchKota = !kota || t.alamat.toLowerCase().indexOf(kota) !== -1;
       var matchStatus =
         status === "Semua Status" ||
-        (status === "Buka" && t.status === "Buka") ||
-        (status === "Tutup" && t.status === "Tutup");
+        (status === "Buka" && t.buka) ||
+        (status === "Tutup" && !t.buka);
       return matchNama && matchKota && matchStatus;
     });
 
@@ -257,221 +151,283 @@ $(function () {
     applyFilter();
   });
 
-  $(document).on("click", ".menu-toko-link", function (e) {
-    e.preventDefault();
-    var storeId = $(this).data("store-id");
-    highlightStore(storeId);
+  /* ---------- Add to cart feedback ---------- */
+
+  $(document).on("click", ".add-btn", function () {
+    var $btn = $(this);
+    $btn.text("✓");
+    setTimeout(function () { $btn.text("+"); }, 900);
   });
 
-  function highlightStore(storeId) {
-    $("html, body").animate(
-      { scrollTop: $("#toko-populer").offset().top - 80 },
-      400,
-      function () {
-        var $card = $('.store-card[data-store-id="' + storeId + '"]');
-        if ($card.length) {
-          $card.addClass("store-highlight");
-          setTimeout(function () {
-            $card.removeClass("store-highlight");
-          }, 2000);
-        }
-      }
-    );
+  /* ---------- FAQ accordion ---------- */
+
+  $(".accordion-trigger").on("click", function () {
+    var $item = $(this).closest(".accordion-item");
+    var $panel = $item.find(".accordion-panel");
+    var isOpen = $item.hasClass("open");
+
+    $(".accordion-item").removeClass("open").find(".accordion-panel").css("max-height", 0);
+
+    if (!isOpen) {
+      $item.addClass("open");
+      $panel.css("max-height", $panel.prop("scrollHeight") + "px");
+    }
+  });
+
+  /* ---------- Demo buttons (no backend, just UX feedback) ---------- */
+
+  /* ---------- Tulis Ulasan (review) ---------- */
+
+  function openReviewModal() {
+    if (!currentUser) {
+      closeAuthModal();
+      openAuthModal("login");
+      return;
+    }
+    $("#reviewError").removeClass("show").text("");
+    $("#reviewSuccess").removeClass("show").text("");
+    $("#reviewForm").show();
+    $("#reviewModalOverlay").addClass("open");
   }
 
-  function bindAccordion() {
-    $(".accordion-trigger").off("click").on("click", function () {
-      var $item = $(this).closest(".accordion-item");
-      var $panel = $item.find(".accordion-panel");
-      var isOpen = $item.hasClass("open");
+  function closeReviewModal() {
+    $("#reviewModalOverlay").removeClass("open");
+  }
 
-      $(".accordion-item").removeClass("open").find(".accordion-panel").css("max-height", 0);
+  $("#tulisUlasanBtn").on("click", openReviewModal);
+  $("#reviewModalClose").on("click", closeReviewModal);
+  $("#reviewModalOverlay").on("click", function (e) {
+    if (e.target === this) closeReviewModal();
+  });
 
-      if (!isOpen) {
-        $item.addClass("open");
-        $panel.css("max-height", $panel.prop("scrollHeight") + "px");
+  $("#reviewForm").on("submit", function (e) {
+    e.preventDefault();
+    $("#reviewError").removeClass("show").text("");
+
+    var payload = {
+      ulasan: $("#reviewText").val().trim(),
+      stars: $("#reviewStars").val(),
+    };
+
+    $.ajax({
+      url: "/api/testimonials",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    })
+      .done(function (data) {
+        $("#reviewForm").hide();
+        $("#reviewSuccess").addClass("show").text(data.message);
+        $("#reviewForm")[0].reset();
+      })
+      .fail(function (xhr) {
+        var msg =
+          (xhr.responseJSON && xhr.responseJSON.error) ||
+          "Gagal mengirim ulasan. Coba lagi.";
+        $("#reviewError").addClass("show").text(msg);
+      });
+  });
+
+  /* ---------- Load testimoni dari backend (hanya yang sudah di-approve) ---------- */
+
+  var TESTIMONI_PAGE_SIZE = 6;
+  var testimoniData = [];
+  var testimoniCurrentPage = 1;
+
+  function loadTestimoniFromServer() {
+    $.getJSON("/api/site-content", function (data) {
+      if (data && data.testimonials) {
+        var mapped = data.testimonials.map(function (t) {
+          return { nama: t.nama, ulasan: t.ulasan, waktu: t.waktu, stars: t.stars };
+        });
+        if (mapped.length) {
+          testimoniData = mapped;
+          testimoniCurrentPage = 1;
+          renderTestimoniPage();
+        }
       }
     });
   }
 
-  function openModal(mode) {
-    $("#loginError, #registerError").text("");
-    if (mode === "register") {
-      $("#loginFormWrap").hide();
-      $("#registerFormWrap").show();
-    } else {
-      $("#registerFormWrap").hide();
-      $("#loginFormWrap").show();
+  function renderTestimoniPage() {
+    var totalPages = Math.max(1, Math.ceil(testimoniData.length / TESTIMONI_PAGE_SIZE));
+    if (testimoniCurrentPage > totalPages) testimoniCurrentPage = totalPages;
+
+    var start = (testimoniCurrentPage - 1) * TESTIMONI_PAGE_SIZE;
+    var pageItems = testimoniData.slice(start, start + TESTIMONI_PAGE_SIZE);
+
+    renderTestimoniFromData(pageItems);
+    renderTestimoniPagination(totalPages);
+  }
+
+  function renderTestimoniFromData(list) {
+    var $grid = $("#testimoniGrid").empty();
+    list.forEach(function (t) {
+      var starCount = Number(t.stars) || 5;
+      var stars = "★".repeat(starCount) + "☆".repeat(5 - starCount);
+      var card = $(
+        '<div class="testi-card">' +
+          '<div class="stars">' + stars + '</div>' +
+          '<div class="name">' + t.nama + '</div>' +
+          '<p>' + t.ulasan + '</p>' +
+          '<div class="when">' + t.waktu + '</div>' +
+        '</div>'
+      );
+      $grid.append(card);
+    });
+  }
+
+  function renderTestimoniPagination(totalPages) {
+    var $pagination = $("#testimoniPagination").empty();
+
+    for (var i = 1; i <= totalPages; i++) {
+      var $btn = $('<button class="page-btn" type="button"></button>').text(i);
+      if (i === testimoniCurrentPage) $btn.addClass("active");
+      $btn.on("click", (function (page) {
+        return function () {
+          testimoniCurrentPage = page;
+          renderTestimoniPage();
+          $("html, body").animate(
+            { scrollTop: $("#testimoni").offset().top - 80 },
+            300
+          );
+        };
+      })(i));
+      $pagination.append($btn);
     }
-    $("#authModal").addClass("active");
   }
 
-  function closeModal() {
-    $("#authModal").removeClass("active");
+  loadTestimoniFromServer();
+
+  /* ---------- Auth: modal open/close ---------- */
+
+  function openAuthModal(tab) {
+    $("#authError").removeClass("show").text("");
+    $(".modal-tab").removeClass("active");
+    $('.modal-tab[data-tab="' + (tab || "login") + '"]').addClass("active");
+    $("#loginForm").toggle(tab !== "register");
+    $("#registerForm").toggle(tab === "register");
+    $("#authModalOverlay").addClass("open");
   }
 
-  function loginAs(nama, email) {
-    IS_LOGGED_IN = true;
-    currentUser = nama;
-    $("#loginBtn").hide();
-    $("#userAvatar").text(nama.charAt(0).toUpperCase());
-    $("#userDropdownName").text(nama);
-    $("#userDropdownEmail").text(email);
-    $("#userDropdown").addClass("show");
-    $("#navWishlist").show();
-    loadWishlistIds();
+  function closeAuthModal() {
+    $("#authModalOverlay").removeClass("open");
   }
 
-  function logoutUI() {
-    IS_LOGGED_IN = false;
-    currentUser = null;
-    WISHLIST_IDS = { menu: {}, store: {} };
-    $("#userDropdown").removeClass("show");
-    $("#loginBtn").show();
-    $("#navWishlist").hide();
-    renderMenu(STATE.menu);
-    renderTokoPopuler(STATE.stores.slice(0, 3));
-    renderTokoHasil(STATE.stores);
-  }
-
-  function checkLoginStatus() {
-    $.get("/api/user/me")
-      .done(function (res) {
-        if (res.loggedIn) {
-          loginAs(res.nama, res.email || "");
-        }
-      });
-  }
-
-  $("#loginBtn").on("click", function () {
-    openModal("login");
+  $(document).on("click", "#loginBtn", function () {
+    openAuthModal("login");
   });
 
-  $("#authModalClose").on("click", closeModal);
-
-  $("#authModal").on("click", function (e) {
-    if (e.target === this) closeModal();
+  $("#authModalClose").on("click", closeAuthModal);
+  $("#authModalOverlay").on("click", function (e) {
+    if (e.target === this) closeAuthModal();
   });
 
-  $("#showRegister").on("click", function (e) {
-    e.preventDefault();
-    openModal("register");
+  $(".modal-tab").on("click", function () {
+    openAuthModal($(this).data("tab"));
   });
 
-  $("#showLogin").on("click", function (e) {
-    e.preventDefault();
-    openModal("login");
+  function showAuthError(msg) {
+    $("#authError").addClass("show").text(msg);
+  }
+
+  /* ---------- Auth: render logged-in state ---------- */
+
+  var currentUser = null;
+
+  function renderAuthArea(user) {
+    currentUser = user || null;
+    var $area = $("#authArea").empty();
+    if (user) {
+      $area.append(
+        $('<div class="user-chip"></div>')
+          .append($("<span></span>").text("Hai, " + user.nama))
+          .append(
+            $('<button class="btn btn-outline-light" id="logoutBtn">Logout</button>')
+          )
+      );
+    } else {
+      $area.append(
+        '<button class="btn btn-outline-light" id="loginBtn">Login / Sign In</button>'
+      );
+    }
+  }
+
+  $(document).on("click", "#logoutBtn", function () {
+    $.post("/api/user/logout").always(function () {
+      renderAuthArea(null);
+    });
   });
+
+  function checkAuthStatus() {
+    $.getJSON("/api/user/me").done(function (data) {
+      if (data.loggedIn) {
+        renderAuthArea({ nama: data.nama, email: data.email });
+      }
+    });
+  }
+
+  checkAuthStatus();
+
+  /* ---------- Auth: login submit ---------- */
 
   $("#loginForm").on("submit", function (e) {
     e.preventDefault();
-    var email = $("#loginEmail").val().trim();
-    var pass = $("#loginPassword").val();
-    if (!email || !pass) {
-      $("#loginError").text("Email dan password wajib diisi.");
-      return;
-    }
+    $("#authError").removeClass("show").text("");
+
+    var payload = {
+      email: $("#loginEmail").val().trim(),
+      password: $("#loginPassword").val(),
+    };
+
     $.ajax({
       url: "/api/user/login",
       method: "POST",
       contentType: "application/json",
-      data: JSON.stringify({ email: email, password: pass }),
+      data: JSON.stringify(payload),
     })
-      .done(function (res) {
-        loginAs(res.nama, res.email || "");
-        closeModal();
+      .done(function (data) {
+        closeAuthModal();
+        renderAuthArea({ nama: data.nama, email: data.email });
         $("#loginForm")[0].reset();
       })
       .fail(function (xhr) {
-        var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Login gagal.";
-        $("#loginError").text(msg);
+        var msg =
+          (xhr.responseJSON && xhr.responseJSON.error) ||
+          "Login gagal. Coba lagi.";
+        showAuthError(msg);
       });
   });
 
+  /* ---------- Auth: register submit ---------- */
+
   $("#registerForm").on("submit", function (e) {
     e.preventDefault();
-    var nama = $("#registerNama").val().trim();
-    var email = $("#registerEmail").val().trim();
-    var pass = $("#registerPassword").val();
-    if (!nama || !email || pass.length < 8) {
-      $("#registerError").text("Lengkapi semua kolom (password minimal 8 karakter).");
-      return;
-    }
+    $("#authError").removeClass("show").text("");
+
+    var payload = {
+      nama: $("#registerNama").val().trim(),
+      email: $("#registerEmail").val().trim(),
+      password: $("#registerPassword").val(),
+    };
+
     $.ajax({
       url: "/api/user/register",
       method: "POST",
       contentType: "application/json",
-      data: JSON.stringify({ nama: nama, email: email, password: pass }),
+      data: JSON.stringify(payload),
     })
-      .done(function (res) {
-        loginAs(res.nama, res.email || "");
-        closeModal();
+      .done(function (data) {
+        closeAuthModal();
+        renderAuthArea({ nama: data.nama, email: data.email });
         $("#registerForm")[0].reset();
       })
       .fail(function (xhr) {
-        var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Registrasi gagal.";
-        $("#registerError").text(msg);
+        var msg =
+          (xhr.responseJSON && xhr.responseJSON.error) ||
+          "Registrasi gagal. Coba lagi.";
+        showAuthError(msg);
       });
-  });
-
-  $("#switchAccountBtn").on("click", function () {
-    $.post("/api/user/logout").always(function () {
-      logoutUI();
-      openModal("login");
-    });
-  });
-
-  $("#logoutUserBtn").on("click", function () {
-    $.post("/api/user/logout").always(logoutUI);
-  });
-
-  $("#tulisUlasanBtn").on("click", function () {
-    alert("Demo: form Tulis Ulasan akan tampil di sini.");
-  });
-
-  function loadWishlistIds() {
-    $.get("/api/wishlist/ids")
-      .done(function (rows) {
-        WISHLIST_IDS = { menu: {}, store: {} };
-        rows.forEach(function (r) {
-          WISHLIST_IDS[r.item_type][r.item_id] = true;
-        });
-        renderMenu(STATE.menu);
-        renderTokoPopuler(STATE.stores.slice(0, 3));
-        renderTokoHasil(STATE.stores);
-      });
-  }
-
-  $(document).on("click", ".wishlist-btn", function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!IS_LOGGED_IN) {
-      openModal("login");
-      return;
-    }
-
-    var $btn = $(this);
-    var type = $btn.data("type");
-    var id = $btn.data("id");
-    var isSaved = !!WISHLIST_IDS[type][id];
-
-    if (isSaved) {
-      $.ajax({ url: "/api/wishlist/" + type + "/" + id, method: "DELETE" }).done(function () {
-        delete WISHLIST_IDS[type][id];
-        loadWishlistIds();
-      });
-    } else {
-      $.ajax({
-        url: "/api/wishlist",
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({ item_type: type, item_id: id }),
-      }).done(function () {
-        WISHLIST_IDS[type][id] = true;
-        loadWishlistIds();
-      });
-    }
   });
 
 });
