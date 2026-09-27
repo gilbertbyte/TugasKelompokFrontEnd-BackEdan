@@ -77,7 +77,7 @@ $(function () {
     stores: {
       title: "Toko",
       endpoint: "stores",
-      columns: ["nama", "alamat", "jarak", "jam_buka", "status", "rating", "ulasan_count"],
+      columns: ["image_url", "nama", "alamat", "jarak", "jam_buka", "status", "rating", "ulasan_count"],
       fields: [
         { name: "nama", label: "Nama Toko", type: "text", required: true },
         { name: "alamat", label: "Alamat", type: "text" },
@@ -92,11 +92,12 @@ $(function () {
     menu: {
       title: "Menu",
       endpoint: "menu",
-      columns: ["nama", "deskripsi", "harga"],
+      columns: ["image_url", "nama", "deskripsi", "harga"],
       fields: [
         { name: "nama", label: "Nama Menu", type: "text", required: true },
         { name: "deskripsi", label: "Deskripsi", type: "text" },
         { name: "harga", label: "Harga (contoh: Rp 15.000)", type: "text" },
+        { name: "image_url", label: "Gambar Menu", type: "image" },
       ],
     },
     testimonials: {
@@ -150,6 +151,11 @@ $(function () {
           if (col === "status") {
             var cls = val === "Buka" ? "buka" : "tutup";
             return '<td><span class="status-tag ' + cls + '">' + escapeHtml(val) + "</span></td>";
+          }
+          if (col === "image_url") {
+            return val
+              ? '<td><img src="' + escapeHtml(val) + '" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px;"></td>'
+              : '<td style="color:#5B6B62;font-size:0.8rem;">Belum ada</td>';
           }
           return "<td>" + escapeHtml(truncate(val)) + "</td>";
         })
