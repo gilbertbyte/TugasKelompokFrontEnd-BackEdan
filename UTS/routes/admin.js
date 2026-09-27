@@ -33,9 +33,23 @@ const upload = multer({
   },
 });
 
-router.post("/api/upload", upload.single("image"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "Tidak ada file yang diupload." });
-  res.json({ url: "/uploads/" + req.file.filename });
+router.post("/api/upload", (req, res) => {
+  upload.single("image")(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(400).json({ error: "Ukuran file maksimal 3MB." });
+        }
+        return res.status(400).json({ error: "Upload gagal: " + err.message });
+      }
+      // Errors thrown from fileFilter land here
+      return res.status(400).json({ error: err.message || "Upload gagal." });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: "Tidak ada file yang diupload." });
+    }
+    res.json({ url: "/uploads/" + req.file.filename });
+  });
 });
 
 const ALLOWED_CONTENT_KEYS = [
