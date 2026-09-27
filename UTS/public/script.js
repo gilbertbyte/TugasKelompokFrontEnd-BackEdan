@@ -151,19 +151,17 @@ $(function () {
           '<a href="#" class="link-arrow menu-toko-link" data-store-id="' + m.store_id + '">Lihat Toko Ini</a>'
         : '<p class="menu-store-info">Toko belum ditentukan</p>';
 
-      $grid.append(
-        '<div class="menu-card">' +
-          wishlistBtnHtml("menu", m.id) +
-          media +
-          '<div class="card-body">' +
-            "<h3>" + escapeHtml(m.nama) + "</h3>" +
-            '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
-            '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
-            storeInfo +
-            '<button class="add-btn" title="Tambah ke keranjang">+</button>' +
-          "</div>" +
-        "</div>"
-      );
+        $grid.append(
+          '<div class="menu-card">' +
+            media +
+            '<div class="card-body">' +
+              "<h3>" + escapeHtml(m.nama) + "</h3>" +
+              '<p class="desc">' + escapeHtml(m.deskripsi || "") + "</p>" +
+              '<span class="price">' + escapeHtml(m.harga || "") + "</span>" +
+              storeInfo +
+            "</div>" +
+          "</div>"
+        );
     });
   }
 
@@ -257,12 +255,6 @@ $(function () {
   $("#filterForm").on("submit", function (e) {
     e.preventDefault();
     applyFilter();
-  });
-
-  $(document).on("click", ".add-btn", function () {
-    var $btn = $(this);
-    $btn.text("✓");
-    setTimeout(function () { $btn.text("+"); }, 900);
   });
 
   $(document).on("click", ".menu-toko-link", function (e) {
