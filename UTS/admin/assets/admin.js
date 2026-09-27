@@ -86,7 +86,7 @@ $(function () {
     stores: {
       title: "Toko",
       endpoint: "stores",
-      columns: ["nama", "alamat", "jarak", "jam_buka", "status", "rating", "ulasan_count"],
+      columns: ["image_url", "nama", "alamat", "jarak", "jam_buka", "status", "rating", "ulasan_count"],
       fields: [
         { name: "nama", label: "Nama Toko", type: "text", required: true },
         { name: "alamat", label: "Alamat", type: "text" },
@@ -101,11 +101,12 @@ $(function () {
     menu: {
       title: "Menu",
       endpoint: "menu",
-      columns: ["nama", "deskripsi", "harga", "store_id"],
+      columns: ["image_url", "nama", "deskripsi", "harga", "store_id"],
       fields: [
         { name: "nama", label: "Nama Menu", type: "text", required: true },
         { name: "deskripsi", label: "Deskripsi", type: "text" },
         { name: "harga", label: "Harga (contoh: Rp 15.000)", type: "text" },
+        { name: "image_url", label: "Gambar Menu", type: "image" },
         { name: "store_id", label: "Toko", type: "store-select" },
       ],
     },
@@ -164,6 +165,11 @@ $(function () {
           if (col === "store_id") {
             var store = STORES_CACHE.find(function (s) { return s.id == val; });
             return "<td>" + (store ? escapeHtml(store.nama) : "<em>Belum dipilih</em>") + "</td>";
+          }
+          if (col === "image_url") {
+            return val
+              ? '<td><img src="' + escapeHtml(val) + '" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:6px;"></td>'
+              : '<td style="color:#5B6B62;font-size:0.8rem;">Belum ada</td>';
           }
           return "<td>" + escapeHtml(truncate(val)) + "</td>";
         })
@@ -236,16 +242,16 @@ $(function () {
         return;
       }
 
-        if (f.type === "textarea") {
-          $input = $("<textarea>").attr("rows", 3).attr("data-field", f.name).val(value || "");
-        } else if (f.type === "store-select") {
-          $input = $("<select>").attr("data-field", f.name);
-          $input.append($("<option>").val("").text("— Pilih Toko —"));
-          STORES_CACHE.forEach(function (store) {
-            $input.append($("<option>").val(store.id).text(store.nama));
-          });
-          $input.val(value || "");
-        } else if (f.type === "select") {
+      if (f.type === "textarea") {
+        $input = $("<textarea>").attr("rows", 3).attr("data-field", f.name).val(value || "");
+      } else if (f.type === "store-select") {
+        $input = $("<select>").attr("data-field", f.name);
+        $input.append($("<option>").val("").text("— Pilih Toko —"));
+        STORES_CACHE.forEach(function (store) {
+          $input.append($("<option>").val(store.id).text(store.nama));
+        });
+        $input.val(value || "");
+      } else if (f.type === "select") {
         $input = $("<select>").attr("data-field", f.name);
         f.options.forEach(function (opt) {
           $input.append($("<option>").val(opt).text(opt));

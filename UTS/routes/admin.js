@@ -181,6 +181,7 @@ registerListCrud({
     { name: "harga", default: "" },
     { name: "sort_order", default: 0 },
     { name: "store_id", default: null },
+    { name: "image_url", default: "" },
   ],
 });
 
