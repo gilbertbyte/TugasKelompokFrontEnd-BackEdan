@@ -115,7 +115,9 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
     const values = {};
     columns.forEach((c) => {
       const def = fields.find((f) => f.name === c);
-      values[c] = body[c] !== undefined ? body[c] : def.default;
+      let val = body[c] !== undefined ? body[c] : def.default;
+      if (def.nullable && val === "") val = null;
+      values[c] = val;
     });
 
     const stmt = db.prepare(
@@ -136,7 +138,10 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
     const setClause = columns.map((c) => `${c} = @${c}`).join(", ");
     const values = { id };
     columns.forEach((c) => {
-      values[c] = body[c] !== undefined ? body[c] : existing[c];
+      const def = fields.find((f) => f.name === c);
+      let val = body[c] !== undefined ? body[c] : existing[c];
+      if (def.nullable && val === "") val = null;
+      values[c] = val;
     });
 
     db.prepare(`UPDATE ${table} SET ${setClause} WHERE id = @id`).run(values);
@@ -180,7 +185,7 @@ registerListCrud({
     { name: "deskripsi", default: "" },
     { name: "harga", default: "" },
     { name: "sort_order", default: 0 },
-    { name: "store_id", default: null },
+    { name: "store_id", default: null, nullable: true },
     { name: "image_url", default: "" },
   ],
 });
