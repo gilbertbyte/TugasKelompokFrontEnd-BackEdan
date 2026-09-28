@@ -1,11 +1,8 @@
-const fs = require("fs");
-const path = require("path");
 const bcrypt = require("bcrypt");
 const Database = require("better-sqlite3");
+const { DB_PATH } = require("./config");
 
-const dbPath = path.join(__dirname, "data", "app.db");
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-const db = new Database(dbPath);
+const db = new Database(DB_PATH);
 
 db.pragma("journal_mode = WAL");
 
@@ -313,10 +310,9 @@ if (db.prepare("SELECT COUNT(*) AS c FROM faqs").get().c === 0) {
 }
 
 // Auto-seed admin user from environment variables.
-// This runs every time the server starts, so it also works on hosts
-// like Railway where the filesystem (and thus this SQLite file) can be
-// reset on every deploy. Set ADMIN_USERNAME and ADMIN_PASSWORD in your
-// hosting provider's environment variables to create/update the admin.
+// This runs every time the server starts. Set ADMIN_USERNAME and
+// ADMIN_PASSWORD in your hosting provider's environment variables to
+// create/update the admin.
 if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
   const adminUsername = process.env.ADMIN_USERNAME;
   const existingAdmin = db
