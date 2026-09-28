@@ -4,6 +4,7 @@ const path = require("path");
 const express = require("express");
 const session = require("express-session");
 const SQLiteStore = require("connect-sqlite3")(session);
+const { DATA_DIR, UPLOADS_DIR } = require("./config");
 
 const userAuthRoutes = require("./routes/user-auth");
 const wishlistRoutes = require("./routes/wishlist");
@@ -27,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   session({
-    store: new SQLiteStore({ db: "sessions.db", dir: path.join(__dirname, "data") }),
+    store: new SQLiteStore({ db: "sessions.db", dir: DATA_DIR }),
     name: "connect.sid",
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -41,6 +42,7 @@ app.use(
   })
 );
 
+app.use("/uploads", express.static(UPLOADS_DIR));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/user", userAuthRoutes);
