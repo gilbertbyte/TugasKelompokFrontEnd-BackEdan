@@ -99,4 +99,103 @@ router.get("/testimonials", (req, res) => {
   res.json(rows);
 });
 
+// ---------- Menu milik toko ----------
+// Semua query di-scope ke store_id akun yang login, jadi pemilik toko
+// cuma bisa lihat/ubah/hapus menu tokonya sendiri.
+const MAX_MENU_IMAGES = 10;
+
+function cleanMenuBody(body) {
+  const { nama, harga, deskripsi } = body || {};
+  return {
+    nama: nama === undefined ? undefined : String(nama).trim(),
+    harga: harga === undefined ? undefined : String(harga).trim(),
+    deskripsi: deskripsi === undefined ? undefined : String(deskripsi).trim(),
+  };
+}
+
+// Baca daftar gambar dari body ("images" array, atau "image_url" string/array).
+// Return: undefined = tidak dikirim, null = tidak valid, array = daftar url.
+function readMenuImages(body) {
+  const { images, image_url } = body || {};
+  let list;
+  if (Array.isArray(images)) list = images;
+  else if (Array.isArray(image_url)) list = image_url;
+  else if (typeof image_url === "string") list = image_url ? [image_url] : [];
+  else return undefined;
+
+  list = list.filter((u) => typeof u === "string" && u.trim()).map((u) => u.trim());
+  if (list.length > MAX_MENU_IMAGES) return null;
+  if (!list.every((u) => u.startsWith("/uploads/"))) return null;
+  return list;
+}
+
+function imagesToColumn(list) {
+  return list.length ? JSON.stringify(list) : "";
+}
+
+router.get("/menu", (req, res) => {
+  const rows = db
+    .prepare("SELECT * FROM menu_items WHERE store_id = ? ORDER BY sort_order ASC, id ASC")
+    .all(req.tokoUser.store_id);
+  res.json(rows);
+});
+
+router.post("/menu", (req, res) => {
+  const m = cleanMenuBody(req.body);
+  if (!m.nama) return res.status(400).json({ error: "Nama menu wajib diisi." });
+  if (m.nama.length > 100) return res.status(400).json({ error: "Nama menu maksimal 100 karakter." });
+  const images = readMenuImages(req.body);
+  if (images === null) {
+    return res.status(400).json({ error: "Gambar tidak valid (maksimal " + MAX_MENU_IMAGES + " gambar)." });
+  }
+
+  const info = db
+    .prepare(
+      "INSERT INTO menu_items (nama, deskripsi, harga, image_url, store_id, sort_order) VALUES (?, ?, ?, ?, ?, 0)"
+    )
+    .run(m.nama, m.deskripsi || "", m.harga || "", imagesToColumn(images || []), req.tokoUser.store_id);
+
+  const row = db.prepare("SELECT * FROM menu_items WHERE id = ?").get(info.lastInsertRowid);
+  res.status(201).json({ ok: true, menu: row });
+});
+
+router.put("/menu/:id", (req, res) => {
+  const row = db
+    .prepare("SELECT * FROM menu_items WHERE id = ? AND store_id = ?")
+    .get(Number(req.params.id), req.tokoUser.store_id);
+  if (!row) return res.status(404).json({ error: "Menu tidak ditemukan." });
+
+  const m = cleanMenuBody(req.body);
+  const nama = m.nama !== undefined ? m.nama : row.nama;
+  if (!nama) return res.status(400).json({ error: "Nama menu wajib diisi." });
+  if (nama.length > 100) return res.status(400).json({ error: "Nama menu maksimal 100 karakter." });
+  const images = readMenuImages(req.body);
+  if (images === null) {
+    return res.status(400).json({ error: "Gambar tidak valid (maksimal " + MAX_MENU_IMAGES + " gambar)." });
+  }
+
+  db.prepare("UPDATE menu_items SET nama = ?, deskripsi = ?, harga = ?, image_url = ? WHERE id = ?").run(
+    nama,
+    m.deskripsi !== undefined ? m.deskripsi : row.deskripsi,
+    m.harga !== undefined ? m.harga : row.harga,
+    images !== undefined ? imagesToColumn(images) : row.image_url,
+    row.id
+  );
+
+  res.json({ ok: true, menu: db.prepare("SELECT * FROM menu_items WHERE id = ?").get(row.id) });
+});
+
+router.delete("/menu/:id", (req, res) => {
+  const row = db
+    .prepare("SELECT id FROM menu_items WHERE id = ? AND store_id = ?")
+    .get(Number(req.params.id), req.tokoUser.store_id);
+  if (!row) return res.status(404).json({ error: "Menu tidak ditemukan." });
+
+  // Bersihkan data yang nunjuk ke menu ini supaya tidak jadi data yatim.
+  db.prepare("DELETE FROM testimonials WHERE target_type = 'menu' AND target_id = ?").run(row.id);
+  db.prepare("DELETE FROM wishlist_items WHERE item_type = 'menu' AND item_id = ?").run(row.id);
+  db.prepare("DELETE FROM menu_items WHERE id = ?").run(row.id);
+  res.json({ ok: true });
+});
+
 module.exports = router;

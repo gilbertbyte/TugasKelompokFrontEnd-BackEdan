@@ -52,6 +52,18 @@
   .img-manager-add:hover{background:#FCEBD1;}
   .img-manager-add:disabled{opacity:.6;cursor:not-allowed;}
   .img-manager-hint{font-size:0.78rem;color:var(--text-muted);margin:-6px 0 16px;}
+
+  /* Menu manager */
+  .menu-list{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+  .menu-row{display:flex;align-items:center;gap:14px;padding:10px;border:1px solid #EAE3D6;border-radius:12px;background:#FFFDF8;}
+  .menu-row-img{width:64px;height:64px;border-radius:10px;object-fit:cover;background:#F4EEE1;flex-shrink:0;}
+  .menu-row-img.placeholder{display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--text-muted);text-align:center;}
+  .menu-row-info{flex:1;min-width:0;}
+  .menu-row-info strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .menu-row-info span{font-size:0.82rem;color:var(--text-muted);}
+  .menu-row-del{background:none;border:1px solid #DCD4C4;border-radius:8px;padding:6px 10px;font-size:0.8rem;cursor:pointer;color:var(--pink-text);}
+  .menu-row-del:hover{background:var(--pink);}
+  .menu-form-box{border-top:1px dashed #DCD4C4;padding-top:20px;}
 </style>
 </head>
 <body>
@@ -109,6 +121,37 @@
   </div>
 
   <div class="dash-card">
+    <h3 style="margin-bottom:18px;">Menu Toko</h3>
+    <div class="menu-list" id="menuList"><p class="section-sub">Memuat menu...</p></div>
+
+    <div class="menu-form-box">
+      <h4 style="margin:0 0 14px;">Tambah Menu Baru</h4>
+      <label style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:8px;">Gambar Menu</label>
+      <div class="img-manager" id="menuImgManager">
+        <button type="button" class="img-manager-add" id="menuImgAddBtn">
+          <span class="plus">+</span>
+          <span>Tambah</span>
+        </button>
+      </div>
+      <p class="img-manager-hint">Bisa pilih beberapa gambar sekaligus (maks 10). Gambar pertama jadi sampul. Maks 3MB per gambar.</p>
+      <input type="file" id="menuImageInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none;">
+
+      <form id="menuForm">
+        <div class="dash-field">
+          <label for="menuNama">Nama Menu</label>
+          <input type="text" id="menuNama" maxlength="100" required>
+        </div>
+        <div class="dash-field">
+          <label for="menuHarga">Harga (opsional)</label>
+          <input type="text" id="menuHarga" placeholder="Contoh: Rp 15.000">
+        </div>
+        <button type="submit" class="btn btn-mustard" style="width:100%;">Tambah Menu</button>
+        <div class="dash-msg" id="menuMsg"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="dash-card">
     <h3 style="margin-bottom:18px;">Ulasan Masuk</h3>
     <div id="reviewsList"><p class="section-sub">Memuat ulasan...</p></div>
   </div>
@@ -149,7 +192,7 @@
     });
   }
 
-  $(document).on("click", ".img-manager-remove", function () {
+  $("#imgManager").on("click", ".img-manager-remove", function () {
     var idx = $(this).data("idx");
     STORE_IMAGES.splice(idx, 1);
     renderImageManager();
@@ -199,6 +242,135 @@
       });
   });
 
+  /* ---------- Menu toko ---------- */
+  var MENU_IMAGES = []; // array url gambar untuk menu yang sedang ditambahkan, index 0 = sampul
+  var MENU_MAX_IMAGES = 10;
+
+  function renderMenuPicker() {
+    var $m = $("#menuImgManager");
+    $m.find(".img-manager-item").remove();
+
+    MENU_IMAGES.forEach(function (url, idx) {
+      $(
+        '<div class="img-manager-item">' +
+          '<img src="' + escapeHtml(url) + '" alt="Gambar menu ' + (idx + 1) + '">' +
+          (idx === 0 ? '<span class="img-manager-cover">Sampul</span>' : '') +
+          '<button type="button" class="img-manager-remove" data-idx="' + idx + '" title="Hapus gambar">&times;</button>' +
+        '</div>'
+      ).insertBefore("#menuImgAddBtn");
+    });
+
+    $("#menuImgAddBtn").toggle(MENU_IMAGES.length < MENU_MAX_IMAGES);
+  }
+
+  $("#menuImgManager").on("click", ".img-manager-remove", function () {
+    MENU_IMAGES.splice($(this).data("idx"), 1);
+    renderMenuPicker();
+  });
+
+  $("#menuImgAddBtn").on("click", function () {
+    $("#menuImageInput").trigger("click");
+  });
+
+  $("#menuImageInput").on("change", function () {
+    var files = Array.from(this.files || []);
+    if (!files.length) return;
+
+    var $msg = $("#menuMsg").removeClass("show ok err");
+    var slots = MENU_MAX_IMAGES - MENU_IMAGES.length;
+    if (files.length > slots) {
+      files = files.slice(0, slots);
+      $msg.addClass("show err").text("Maksimal " + MENU_MAX_IMAGES + " gambar per menu. Sebagian gambar tidak diupload.");
+    }
+
+    var $btn = $("#menuImgAddBtn");
+    $btn.prop("disabled", true).html('<span class="plus">⏳</span><span>Mengupload...</span>');
+
+    var uploads = files.map(function (file) {
+      var formData = new FormData();
+      formData.append("image", file);
+      return $.ajax({
+        url: "/api/toko/upload",
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+      });
+    });
+
+    $.when.apply($, uploads)
+      .done(function () {
+        var results = uploads.length === 1 ? [arguments] : arguments;
+        Array.prototype.forEach.call(results, function (res) {
+          var data = res[0];
+          if (data && data.url) MENU_IMAGES.push(data.url);
+        });
+        renderMenuPicker();
+      })
+      .fail(function () {
+        $msg.addClass("show err").text("Sebagian atau semua gambar gagal diupload. Coba lagi.");
+      })
+      .always(function () {
+        $btn.prop("disabled", false).html('<span class="plus">+</span><span>Tambah</span>');
+        $("#menuImageInput").val("");
+      });
+  });
+
+  function loadMenu() {
+    $.getJSON("/api/toko/menu").done(function (rows) {
+      var $list = $("#menuList").empty();
+      if (!rows.length) {
+        $list.append('<p class="section-sub">Belum ada menu. Tambahkan menu pertama kamu di bawah.</p>');
+        return;
+      }
+      rows.forEach(function (m) {
+        var pics = parseImages(m.image_url);
+        var pic = pics[0];
+        var img = pic
+          ? '<img class="menu-row-img" src="' + escapeHtml(pic) + '" alt="' + escapeHtml(m.nama) + '">'
+          : '<div class="menu-row-img placeholder">Tanpa gambar</div>';
+        $list.append(
+          '<div class="menu-row">' + img +
+            '<div class="menu-row-info"><strong>' + escapeHtml(m.nama) + '</strong>' +
+            '<span>' + escapeHtml(m.harga || "Harga belum diisi") + (pics.length > 1 ? ' · ' + pics.length + ' foto' : '') + '</span></div>' +
+            '<button type="button" class="menu-row-del" data-id="' + m.id + '">Hapus</button>' +
+          '</div>'
+        );
+      });
+    });
+  }
+
+  $(document).on("click", ".menu-row-del", function () {
+    if (!confirm("Hapus menu ini? Ulasan untuk menu ini juga ikut terhapus.")) return;
+    $.ajax({ url: "/api/toko/menu/" + $(this).data("id"), method: "DELETE" }).done(loadMenu);
+  });
+
+  $("#menuForm").on("submit", function (e) {
+    e.preventDefault();
+    var $msg = $("#menuMsg").removeClass("show ok err");
+    $.ajax({
+      url: "/api/toko/menu",
+      method: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({
+        nama: $("#menuNama").val().trim(),
+        harga: $("#menuHarga").val().trim(),
+        images: MENU_IMAGES,
+      }),
+    })
+      .done(function () {
+        $msg.addClass("show ok").text("Menu ditambahkan.");
+        $("#menuNama, #menuHarga").val("");
+        MENU_IMAGES = [];
+        renderMenuPicker();
+        loadMenu();
+      })
+      .fail(function (xhr) {
+        var err = (xhr.responseJSON && xhr.responseJSON.error) || "Gagal menambah menu.";
+        $msg.addClass("show err").text(err);
+      });
+  });
+
   // Guard: pastikan yang buka halaman ini memang akun toko yang sudah approved.
   $.getJSON("/api/user/me")
     .done(function (data) {
@@ -208,6 +380,7 @@
       }
       $("#dashWhoami").text("Halo, " + data.nama);
       loadStore();
+      loadMenu();
       loadReviews();
     })
     .fail(function () {
