@@ -12,17 +12,18 @@ router.get("/api/site-content", (req, res) => {
     content[row.key] = JSON.parse(row.data);
   });
 
-  const stores = db.prepare("SELECT * FROM stores ORDER BY sort_order ASC, id ASC").all();
+  const stores = db
+    .prepare("SELECT * FROM stores WHERE approval_status = 'approved' ORDER BY sort_order ASC, id ASC")
+    .all();
+
   const menu = db.prepare(`
-  SELECT
-    menu_items.*,
-    stores.id AS store_id,
-    stores.nama AS store_nama,
-    stores.alamat AS store_alamat
-  FROM menu_items
-  LEFT JOIN stores ON stores.id = menu_items.store_id
-  ORDER BY menu_items.sort_order ASC, menu_items.id ASC
-`).all();
+    SELECT menu_items.*, stores.id AS store_id, stores.nama AS store_nama, stores.alamat AS store_alamat
+    FROM menu_items
+    LEFT JOIN stores ON stores.id = menu_items.store_id
+    WHERE stores.id IS NULL OR stores.approval_status = 'approved'
+    ORDER BY menu_items.sort_order ASC, menu_items.id ASC
+  `).all();
+
   const testimonials = db
     .prepare("SELECT * FROM testimonials WHERE approved = 1 ORDER BY sort_order ASC, id ASC")
     .all();

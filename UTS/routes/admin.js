@@ -194,6 +194,38 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
   });
 }
 
+router.get("/api/toko-pending", (req, res) => {
+  const rows = db
+    .prepare(
+      `SELECT users.id AS user_id, users.nama, users.email, users.created_at,
+              stores.id AS store_id, stores.nama AS store_nama, stores.alamat AS store_alamat
+       FROM users
+       JOIN stores ON stores.id = users.store_id
+       WHERE users.role = 'toko' AND users.status = 'pending'
+       ORDER BY users.created_at ASC`
+    )
+    .all();
+  res.json(rows);
+});
+
+router.post("/api/toko-pending/:userId/approve", (req, res) => {
+  const user = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'toko'").get(req.params.userId);
+  if (!user) return res.status(404).json({ error: "Pendaftaran toko tidak ditemukan." });
+
+  db.prepare("UPDATE users SET status = 'approved' WHERE id = ?").run(user.id);
+  if (user.store_id) db.prepare("UPDATE stores SET approval_status = 'approved' WHERE id = ?").run(user.store_id);
+  res.json({ ok: true });
+});
+
+router.post("/api/toko-pending/:userId/reject", (req, res) => {
+  const user = db.prepare("SELECT * FROM users WHERE id = ? AND role = 'toko'").get(req.params.userId);
+  if (!user) return res.status(404).json({ error: "Pendaftaran toko tidak ditemukan." });
+
+  db.prepare("UPDATE users SET status = 'rejected' WHERE id = ?").run(user.id);
+  if (user.store_id) db.prepare("UPDATE stores SET approval_status = 'rejected' WHERE id = ?").run(user.store_id);
+  res.json({ ok: true });
+});
+
 registerListCrud({
   path: "stores",
   table: "stores",
@@ -207,6 +239,7 @@ registerListCrud({
     { name: "ulasan_count", default: 0 },
     { name: "sort_order", default: 0 },
     { name: "image_url", default: "" },
+    { name: "approval_status", default: "approved" },
   ],
 });
 
