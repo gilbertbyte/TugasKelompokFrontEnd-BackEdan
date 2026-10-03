@@ -503,22 +503,29 @@ $(function () {
 
   function renderTestimoniPagination(totalPages) {
     var $pagination = $("#testimoniPagination").empty();
+    if (totalPages <= 1) return;
 
-    for (var i = 1; i <= totalPages; i++) {
-      var $btn = $('<button class="page-btn" type="button"></button>').text(i);
-      if (i === testimoniCurrentPage) $btn.addClass("active");
-      $btn.on("click", (function (page) {
-        return function () {
-          testimoniCurrentPage = page;
-          renderTestimoniPage();
-          $("html, body").animate(
-            { scrollTop: $("#testimoni").offset().top - 80 },
-            300
-          );
-        };
-      })(i));
-      $pagination.append($btn);
+    function goTo(page) {
+      if (page < 1 || page > totalPages || page === testimoniCurrentPage) return;
+      testimoniCurrentPage = page;
+      renderTestimoniPage();
+      $("html, body").animate(
+        { scrollTop: $("#testimoni").offset().top - 80 },
+        300
+      );
     }
+
+    var $prev = $('<button class="page-btn page-arrow" type="button" aria-label="Halaman sebelumnya">&#8249;</button>');
+    var $next = $('<button class="page-btn page-arrow" type="button" aria-label="Halaman berikutnya">&#8250;</button>');
+    var $info = $('<span class="page-info"></span>').text(testimoniCurrentPage + " / " + totalPages);
+
+    if (testimoniCurrentPage === 1) $prev.prop("disabled", true);
+    if (testimoniCurrentPage === totalPages) $next.prop("disabled", true);
+
+    $prev.on("click", function () { goTo(testimoniCurrentPage - 1); });
+    $next.on("click", function () { goTo(testimoniCurrentPage + 1); });
+
+    $pagination.append($prev, $info, $next);
   }
 
   loadTestimoniFromServer();
