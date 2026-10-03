@@ -519,18 +519,71 @@ $(function () {
     });
   }
 
+  function renderItemPreview(listKey) {
+    var $form = $("#itemFormFields");
+    var read = function (field, fallback) {
+      var value = $form.find('[data-field="' + field + '"]').val();
+      return value === undefined || value === null || value === "" ? fallback : value;
+    };
+    var html = "";
+
+    if (listKey === "faqs") {
+      html = '<div class="pv-faq-item"><div class="q">' +
+        escapeHtml(read("question", "Pertanyaan baru")) + '</div><div class="a">' +
+        escapeHtml(read("answer", "Jawaban akan tampil di sini.")) + '</div></div>';
+    } else if (listKey === "stores") {
+      var store = {
+        jam_buka: read("jam_buka", ""),
+        jam_tutup: read("jam_tutup", ""),
+      };
+      var isOpen = storeIsOpen(store);
+      var images = parseImageList(read("image_url", ""));
+      var image = images.length
+        ? '<img class="pv-img" src="' + escapeHtml(images[0]) + '" alt="">'
+        : '<div class="pv-img-placeholder">Gambar toko</div>';
+      html = '<div class="pv-card">' + image + '<h4>' + escapeHtml(read("nama", "Nama toko")) + '</h4>' +
+        '<p>' + escapeHtml(read("alamat", "Alamat toko")) + '</p><div class="pv-row"><span>' +
+        escapeHtml(formatTime(store.jam_buka) + " - " + formatTime(store.jam_tutup)) +
+        '</span><span class="pv-status ' + (isOpen ? "buka" : "tutup") + '">' +
+        (isOpen ? "Buka" : "Tutup") + '</span></div></div>';
+    } else if (listKey === "menu") {
+      var menuImages = parseImageList(read("image_url", ""));
+      var menuImage = menuImages.length
+        ? '<img class="pv-img" src="' + escapeHtml(menuImages[0]) + '" alt="">'
+        : '<div class="pv-img-placeholder">Gambar menu</div>';
+      var selectedStore = $form.find('[data-field="store_id"] option:selected').text();
+      html = '<div class="pv-card">' + menuImage + '<h4>' + escapeHtml(read("nama", "Nama menu")) + '</h4>' +
+        '<p>' + escapeHtml(read("deskripsi", "Deskripsi menu")) + '</p><div class="pv-row"><span class="pv-price">' +
+        escapeHtml(read("harga", "Harga")) + '</span><span>' + escapeHtml(selectedStore || "") + '</span></div></div>';
+    } else if (listKey === "testimonials") {
+      var stars = Math.max(1, Math.min(5, Number(read("stars", 5)) || 5));
+      html = '<div class="pv-card"><div class="pv-stars">' + "★".repeat(stars) + "☆".repeat(5 - stars) +
+        '</div><h4>' + escapeHtml(read("nama", "Nama pelanggan")) + '</h4><p>' +
+        escapeHtml(read("ulasan", "Ulasan pelanggan akan tampil di sini.")) + '</p><p>' +
+        escapeHtml(read("waktu", "Keterangan waktu")) + '</p></div>';
+    }
+
+    $("#itemPreview").html(html);
+  }
+
+  $("#itemFormFields").on("input change", "[data-field]", function () {
+    renderItemPreview($("#itemListKey").val());
+  });
+
   function openItemModal(listKey, item) {
     var config = LIST_CONFIG[listKey];
     $("#itemModalTitle").text((item ? "Edit " : "Tambah ") + config.title);
     $("#itemId").val(item ? item.id : "");
     $("#itemListKey").val(listKey);
     buildModalFields(listKey, item);
+    renderItemPreview(listKey);
     $("#itemModal").addClass("open");
   }
 
   function closeItemModal() {
     $("#itemModal").removeClass("open");
     $("#itemFormFields").empty();
+    $("#itemPreview").empty();
   }
 
   $(document).on("click", ".add-item-btn", function () {
