@@ -131,7 +131,7 @@ router.put("/api/content/:key", (req, res) => {
   res.json(merged);
 });
 
-function registerListCrud({ path: routePath, table, fields, requiredField }) {
+function registerListCrud({ path: routePath, table, fields, requiredField, beforeDelete }) {
   router.get(`/api/${routePath}`, (req, res) => {
     const rows = db.prepare(`SELECT * FROM ${table} ORDER BY sort_order ASC, id ASC`).all();
     res.json(rows);
@@ -189,8 +189,17 @@ function registerListCrud({ path: routePath, table, fields, requiredField }) {
     const existing = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(id);
     if (!existing) return res.status(404).json({ error: "Not found." });
 
-    db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
-    res.json({ ok: true });
+    try {
+      const runDelete = db.transaction(() => {
+        if (beforeDelete) beforeDelete(id);
+        db.prepare(`DELETE FROM ${table} WHERE id = ?`).run(id);
+      });
+      runDelete();
+      res.json({ ok: true });
+    } catch (err) {
+      console.error(`Gagal menghapus dari tabel ${table} (id=${id}):`, err);
+      res.status(500).json({ error: "Gagal menghapus: " + err.message });
+    }
   });
 }
 
@@ -241,6 +250,24 @@ registerListCrud({
     { name: "image_url", default: "" },
     { name: "approval_status", default: "approved" },
   ],
+  // Toko yang mau dihapus mungkin masih punya menu, testimoni, dan akun
+  // toko yang nempel ke dia. Beresin dulu semua itu sebelum baris toko-nya
+  // sendiri dihapus, supaya tidak gagal dan tidak ada data nyangkut.
+  beforeDelete: (storeId) => {
+    const menuIds = db
+      .prepare("SELECT id FROM menu_items WHERE store_id = ?")
+      .all(storeId)
+      .map((m) => m.id);
+    if (menuIds.length) {
+      const placeholders = menuIds.map(() => "?").join(",");
+      db.prepare(
+        `DELETE FROM testimonials WHERE target_type = 'menu' AND target_id IN (${placeholders})`
+      ).run(...menuIds);
+    }
+    db.prepare("DELETE FROM testimonials WHERE target_type = 'store' AND target_id = ?").run(storeId);
+    db.prepare("DELETE FROM menu_items WHERE store_id = ?").run(storeId);
+    db.prepare("UPDATE users SET store_id = NULL WHERE store_id = ?").run(storeId);
+  },
 });
 
 registerListCrud({
@@ -255,6 +282,11 @@ registerListCrud({
     { name: "store_id", default: null, nullable: true },
     { name: "image_url", default: "" },
   ],
+  // Testimoni yang nunjuk ke menu ini (target_type = 'menu') juga harus
+  // ikut dibersihkan, atau nanti nyangkut sebagai data yatim.
+  beforeDelete: (menuId) => {
+    db.prepare("DELETE FROM testimonials WHERE target_type = 'menu' AND target_id = ?").run(menuId);
+  },
 });
 
 registerListCrud({

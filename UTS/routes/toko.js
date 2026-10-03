@@ -47,21 +47,21 @@ router.get("/me", (req, res) => {
   res.json({ store });
 });
 
-// Toko owner hanya boleh ubah data dasar tokonya sendiri (nama, alamat,
-// jam, gambar). approval_status, rating, dan ulasan_count sengaja TIDAK
-// bisa diubah dari sini — itu tetap sepenuhnya kewenangan admin.
+
 router.put("/me", (req, res) => {
   const store = db.prepare("SELECT * FROM stores WHERE id = ?").get(req.tokoUser.store_id);
   if (!store) return res.status(404).json({ error: "Toko tidak ditemukan." });
 
-  const { nama, alamat, jam_buka, jam_tutup, image_url } = req.body || {};
+  const { nama, alamat, jam_buka, jam_tutup, image_url, images } = req.body || {};
 
   if (!nama || !String(nama).trim()) {
     return res.status(400).json({ error: "Nama toko wajib diisi." });
   }
 
   let imageValue = store.image_url;
-  if (image_url !== undefined) {
+  if (Array.isArray(images)) {
+    imageValue = JSON.stringify(images.filter((url) => typeof url === "string" && url));
+  } else if (image_url !== undefined) {
     imageValue = Array.isArray(image_url) ? JSON.stringify(image_url) : image_url;
   }
 
