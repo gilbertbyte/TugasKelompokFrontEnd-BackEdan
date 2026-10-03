@@ -250,7 +250,7 @@ $(function () {
             '<p class="meta">' + escapeHtml(t.alamat || "") + "</p>" +
             '<p class="meta">Jam Buka: ' + escapeHtml(formatStoreHours(t)) + "</p>" +
             '<p class="store-status ' + statusClass + '" data-store-status-id="' + t.id + '">' + statusText + "</p>" +
-            '<span class="rating">★ ' + t.rating + " (" + (t.ulasan_count || 0) + " ulasan)</span><br>" +
+            '<span class="rating">★ ' + t.rating + "</span><br>" +
             '<a href="#" class="link-arrow" style="margin-top:10px;display:inline-block;">Lihat Detail</a>' +
           "</div>" +
         "</div>"
@@ -724,7 +724,6 @@ $(function () {
     $("#storeDetailNama").text(store.nama);
     $("#storeDetailAlamat").text(store.alamat || "-");
     $("#storeDetailRating").html("★ " + (store.rating || 0));
-    $("#storeDetailUlasan").text((store.ulasan_count || 0) + " ulasan");
     $("#storeDetailJam").text(formatStoreHours(store));
 
     var storeMenus = STATE.menu.filter(function (m) {
