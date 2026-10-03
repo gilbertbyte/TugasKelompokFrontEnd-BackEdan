@@ -13,7 +13,7 @@
 <!-- HEADER -->
 <header class="site-header">
   <div class="container header-inner">
-    <a href="#" class="logo">Pisang Ijo</a>
+    <a href="#" class="logo" data-content="site.logo_text">Pisang Ijo</a>
     <nav class="main-nav">
       <a href="#beranda">Home</a>
       <a href="#cari-toko">Cari Toko</a>
@@ -32,18 +32,18 @@
 <!-- HERO -->
 <section class="hero" id="beranda">
   <div class="container hero-inner">
-    <span class="badge">Platform Kuliner Makassar</span>
-    <h1>Temukan Es Pisang Ijo<br>Favorit Kamu</h1>
-    <p class="hero-sub">Jelajahi pilihan es pisang ijo dan temukan menu kesukaanmu</p>
+    <span class="badge" data-content="hero.badge">Platform Kuliner Makassar</span>
+    <h1 data-content="hero.heading">Temukan Es Pisang Ijo<br>Favorit Kamu</h1>
+    <p class="hero-sub" data-content="hero.subheading">Jelajahi pilihan es pisang ijo dan temukan menu kesukaanmu</p>
 
     <form class="search-bar" id="heroSearchForm">
-      <input type="text" placeholder="Cari toko atau menu es pisang ijo" id="heroSearchInput">
+      <input type="text" placeholder="Cari toko atau menu es pisang ijo" data-content-placeholder="hero.search_placeholder" id="heroSearchInput">
       <button type="submit" class="btn btn-mustard">Cari</button>
     </form>
 
     <div class="hero-actions">
-      <a href="#cari-toko" class="btn btn-mustard">Cari Toko</a>
-      <a href="#menu" class="btn btn-outline-light">Lihat Menu</a>
+      <a href="#cari-toko" class="btn btn-mustard" data-content="hero.cta_primary">Cari Toko</a>
+      <a href="#menu" class="btn btn-outline-light" data-content="hero.cta_secondary">Lihat Menu</a>
     </div>
   </div>
   <div class="hero-bowls" aria-hidden="true">
@@ -57,10 +57,10 @@
   <div class="container">
     <div class="section-head">
       <div>
-        <h2>Toko Populer &amp; Rating</h2>
-        <p class="section-sub">Torem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+        <h2 data-content="toko_populer.heading">Toko Populer &amp; Rating</h2>
+        <p class="section-sub" data-content="toko_populer.subheading">Torem ipsum dolor sit amet, consectetur adipiscing elit.</p>
       </div>
-      <a href="#cari-toko" class="link-arrow">Lihat semua toko</a>
+      <a href="#cari-toko" class="link-arrow" data-content="toko_populer.link_text">Lihat semua toko</a>
     </div>
 
     <div class="grid grid-3" id="tokoPopulerGrid">
@@ -73,8 +73,8 @@
 <section class="section section-tinted" id="menu">
   <div class="container">
     <div class="section-head section-head-center">
-      <h2>Menu Unggulan</h2>
-      <p class="section-sub">Pilih paduan rasa favorit untuk anda coba nanti</p>
+      <h2 data-content="menu_section.heading">Menu Unggulan</h2>
+      <p class="section-sub" data-content="menu_section.subheading">Pilih paduan rasa favorit untuk anda coba nanti</p>
     </div>
 
     <div class="grid grid-4" id="menuGrid">
@@ -90,21 +90,21 @@
       <div class="media-frame">Ceritanya Gambar Bahan Bahan Pisang Ijo</div>
     </div>
     <div class="about-copy">
-      <span class="eyebrow-pink">Tentang Platform</span>
-      <h2>Merayakan segarnya rasa yang akrab</h2>
-      <p>Corem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.</p>
+      <span class="eyebrow-pink" data-content="about.eyebrow">Tentang Platform</span>
+      <h2 data-content="about.heading">Merayakan segarnya rasa yang akrab</h2>
+      <p data-content="about.description">Corem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis.</p>
       <ul class="pill-list">
-        <li class="pill pill-green">Pisang Segar Pilihan</li>
-        <li class="pill pill-mustard">Santan Lembut</li>
-        <li class="pill pill-pink">Layanan Penuh Perhatian</li>
+        <li class="pill pill-green" data-content="about.pill_1">Pisang Segar Pilihan</li>
+        <li class="pill pill-mustard" data-content="about.pill_2">Santan Lembut</li>
+        <li class="pill pill-pink" data-content="about.pill_3">Layanan Penuh Perhatian</li>
       </ul>
     </div>
   </div>
 
   <div class="container">
     <div class="history-box">
-      <h3>Sejarah Pisang Ijo</h3>
-      <p>Vorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Ut commodo efficitur neque. Ut diam quam, semper iaculis condimentum ac, vestibulum eu nisl.</p>
+      <h3 data-content="history.heading">Sejarah Pisang Ijo</h3>
+      <p data-content="history.text">Vorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vulputate libero et velit interdum, ac aliquet odio mattis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur tempus urna at turpis condimentum lobortis. Ut commodo efficitur neque. Ut diam quam, semper iaculis condimentum ac, vestibulum eu nisl.</p>
     </div>
   </div>
 </section>
@@ -114,10 +114,10 @@
   <div class="container">
     <div class="section-head">
       <div>
-        <span class="eyebrow-mustard">Kota Mereka #MerekaBicara</span>
-        <h2 class="light">Testimoni Pelanggan</h2>
+        <span class="eyebrow-mustard" data-content="testimonial_section.eyebrow">Kota Mereka #MerekaBicara</span>
+        <h2 class="light" data-content="testimonial_section.heading">Testimoni Pelanggan</h2>
       </div>
-      <button class="btn btn-mustard" id="tulisUlasanBtn">Tulis Ulasan</button>
+      <button class="btn btn-mustard" id="tulisUlasanBtn" data-content="testimonial_section.cta">Tulis Ulasan</button>
     </div>
 
     <div class="grid grid-3" id="testimoniGrid">
@@ -135,9 +135,9 @@
   <div class="container">
     <div class="section-head">
       <div>
-        <span class="eyebrow-mustard">Pencarian Lokasi</span>
-        <h2>Cari Toko Es Pisang Ijo</h2>
-        <p class="section-sub">Masukkan nama toko atau menu dan area/kota secara manual</p>
+        <span class="eyebrow-mustard" data-content="cari_toko.eyebrow">Pencarian Lokasi</span>
+        <h2 data-content="cari_toko.heading">Cari Toko Es Pisang Ijo</h2>
+        <p class="section-sub" data-content="cari_toko.subheading">Masukkan nama toko atau menu dan area/kota secara manual</p>
       </div>
     </div>
 
@@ -180,8 +180,8 @@
 <section class="section section-tinted" id="faq">
   <div class="container faq-wrap">
     <div class="section-head section-head-center">
-      <span class="eyebrow-mustard">Butuh Bantuan?</span>
-      <h2>Pertanyaan Yang Sering Ditanyakan</h2>
+      <span class="eyebrow-mustard" data-content="faq_section.eyebrow">Butuh Bantuan?</span>
+      <h2 data-content="faq_section.heading">Pertanyaan Yang Sering Ditanyakan</h2>
     </div>
 
     <div class="accordion" id="faqAccordion">
@@ -217,13 +217,13 @@
 <section class="section" id="kontak">
   <div class="container kontak-box">
     <div>
-      <span class="eyebrow-mustard">Kontak</span>
-      <h2>Mari ngobrol tentang rasa favoritmu</h2>
-      <p>Email support demo : halo@pisangijokita.com<br>WhatsApp CS demo : +62 700 0000 0000</p>
+      <span class="eyebrow-mustard" data-content="contact.eyebrow">Kontak</span>
+      <h2 data-content="contact.heading">Mari ngobrol tentang rasa favoritmu</h2>
+      <p>Email support demo : <span data-content="contact.email">halo@pisangijokita.com</span><br>WhatsApp CS demo : <span data-content="contact.whatsapp">+62 700 0000 0000</span></p>
     </div>
     <div class="kontak-note">
-      <p>Butuh bantuan menggunakan halaman demo ini? Hubungi kanal contoh berikut pada jam layanan umum.</p>
-      <p><strong>Jam layanan umum:</strong> Senin - Sabtu, 09.00 - 18.00</p>
+      <p data-content="contact.note">Butuh bantuan menggunakan halaman demo ini? Hubungi kanal contoh berikut pada jam layanan umum.</p>
+      <p><strong>Jam layanan umum:</strong> <span data-content="contact.hours">Senin - Sabtu, 09.00 - 18.00</span></p>
     </div>
   </div>
 </section>
@@ -232,9 +232,9 @@
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">
-      <span class="logo light">Pisang Ijo</span>
-      <p>Platform demo untuk menjelajahi menu dan toko es pisang ijo</p>
-      <p class="footer-social">Sosial demo : Instagram - TikTok - Facebook</p>
+      <span class="logo light" data-content="site.logo_text">Pisang Ijo</span>
+      <p data-content="footer.tagline">Platform demo untuk menjelajahi menu dan toko es pisang ijo</p>
+      <p class="footer-social" data-content="footer.social_text">Sosial demo : Instagram - TikTok - Facebook</p>
     </div>
     <div>
       <h4>Tautan Cepat</h4>
@@ -248,20 +248,20 @@
     <div>
       <h4>Bantuan &amp; Kontak</h4>
       <ul>
-        <li>halo@pisangijokita.com</li>
-        <li>WhatsApp CS demo: +62 800 0000 0000</li>
+        <li data-content="footer.help_email">halo@pisangijokita.com</li>
+        <li>WhatsApp CS demo: <span data-content="footer.help_whatsapp">+62 800 0000 0000</span></li>
       </ul>
     </div>
     <div>
       <h4>Legal</h4>
       <ul>
-        <li><a href="#">Syarat &amp; Ketentuan</a></li>
-        <li><a href="#">Kebijakan Privasi</a></li>
+        <li><a href="#" data-content="footer.legal_terms_label">Syarat &amp; Ketentuan</a></li>
+        <li><a href="#" data-content="footer.legal_privacy_label">Kebijakan Privasi</a></li>
       </ul>
     </div>
   </div>
   <div class="container footer-bottom">
-    <p>&copy; 2026 Pisang Ijo</p>
+    <p>&copy; <span data-content="footer.copyright">2026 Pisang Ijo</span></p>
   </div>
 </footer>
 

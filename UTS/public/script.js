@@ -9,6 +9,26 @@ $(function () {
     return $("<div>").text(str == null ? "" : str).html();
   }
 
+  function applyContent(content) {
+    content = content || {};
+
+    $("[data-content]").each(function () {
+      var parts = $(this).attr("data-content").split(".");
+      var block = content[parts[0]];
+      var value = block ? block[parts[1]] : undefined;
+      if (value !== undefined && value !== null && value !== "") $(this).text(value);
+    });
+
+    $("[data-content-placeholder]").each(function () {
+      var parts = $(this).attr("data-content-placeholder").split(".");
+      var block = content[parts[0]];
+      var value = block ? block[parts[1]] : undefined;
+      if (value !== undefined && value !== null && value !== "") $(this).attr("placeholder", value);
+    });
+
+    if (content.site && content.site.site_title) document.title = content.site.site_title;
+  }
+
   function imageList(value) {
     if (Array.isArray(value)) return value.filter(Boolean);
     if (typeof value !== "string" || !value) return [];
@@ -210,6 +230,7 @@ $(function () {
       .done(function (data) {
         STATE.stores = data.stores || [];
         STATE.menu = data.menu || [];
+        applyContent(data.content);
         var about = (data.content && data.content.about) || {};
         var aboutImages = about.images || about.image_url;
         var aboutMedia = imageSlideshowHtml(aboutImages, about.heading || "Tentang platform") || escapeHtml(about.media_text || "");
