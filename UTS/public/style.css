@@ -627,3 +627,23 @@ p{margin:0 0 8px;}
   background:var(--mustard);color:var(--green-deep);
   border-color:var(--mustard);
 }
+
+/* Pagination di section terang (Menu Unggulan) */
+.pagination-light .page-btn{
+  border-color:var(--green-dark);color:var(--green-dark);
+}
+.pagination-light .page-btn:hover{background:rgba(30,77,59,.1);}
+.pagination-light .page-btn.active{
+  background:var(--green-dark);color:#fff;border-color:var(--green-dark);
+}
+.pagination-light{align-items:center;gap:14px;}
+.pagination-light .page-arrow{
+  width:40px;height:40px;padding:0;font-size:1.5rem;line-height:1;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--green-dark);color:#fff;
+}
+.pagination-light .page-arrow:hover:not(:disabled){background:var(--green-mid);}
+.pagination-light .page-arrow:disabled{opacity:.35;cursor:not-allowed;}
+.pagination-light .page-info{
+  min-width:48px;text-align:center;font-weight:600;color:var(--green-dark);
+}

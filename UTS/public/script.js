@@ -173,9 +173,18 @@ $(function () {
     });
   }
 
+  var MENU_PAGE_SIZE = 8;
+  var menuCurrentPage = 1;
+
   function renderMenu(list) {
+    var totalPages = Math.max(1, Math.ceil(list.length / MENU_PAGE_SIZE));
+    if (menuCurrentPage > totalPages) menuCurrentPage = totalPages;
+    var start = (menuCurrentPage - 1) * MENU_PAGE_SIZE;
+    var pageItems = list.slice(start, start + MENU_PAGE_SIZE);
+
     var $grid = $("#menuGrid").empty();
-    list.forEach(function (m) {
+    renderMenuPagination(list, totalPages);
+    pageItems.forEach(function (m) {
       var media = imageMediaHtml(m.image_url, m.nama, "Ceritanya gambar Menu");
 
       var storeInfo = m.store_nama
@@ -196,6 +205,33 @@ $(function () {
         "</div>"
       );
     });
+  }
+
+  function renderMenuPagination(list, totalPages) {
+    var $pagination = $("#menuPagination").empty();
+    if (totalPages <= 1) return;
+
+    function goTo(page) {
+      if (page < 1 || page > totalPages || page === menuCurrentPage) return;
+      menuCurrentPage = page;
+      renderMenu(list);
+      $("html, body").animate(
+        { scrollTop: $("#menu").offset().top - 80 },
+        300
+      );
+    }
+
+    var $prev = $('<button class="page-btn page-arrow" type="button" aria-label="Halaman sebelumnya">&#8249;</button>');
+    var $next = $('<button class="page-btn page-arrow" type="button" aria-label="Halaman berikutnya">&#8250;</button>');
+    var $info = $('<span class="page-info"></span>').text(menuCurrentPage + " / " + totalPages);
+
+    if (menuCurrentPage === 1) $prev.prop("disabled", true);
+    if (menuCurrentPage === totalPages) $next.prop("disabled", true);
+
+    $prev.on("click", function () { goTo(menuCurrentPage - 1); });
+    $next.on("click", function () { goTo(menuCurrentPage + 1); });
+
+    $pagination.append($prev, $info, $next);
   }
 
   function renderTokoHasil(list) {
