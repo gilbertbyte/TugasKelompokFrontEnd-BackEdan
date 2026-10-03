@@ -560,7 +560,8 @@ $(function () {
       .done(function () { loadList(listKey); })
       .fail(function (xhr) {
         handleAuthFail(xhr);
-        alert("Gagal menghapus.");
+        var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Gagal menghapus.";
+        alert(msg);
       });
   });
 

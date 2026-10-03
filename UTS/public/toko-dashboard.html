@@ -21,10 +21,37 @@
   .dash-msg.show{display:block;}
   .dash-msg.ok{background:var(--green-tint);color:var(--green-dark);}
   .dash-msg.err{background:var(--pink);color:var(--pink-text);}
-  .dash-thumb{width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:none;}
   .review-item{border-bottom:1px solid #EAE3D6;padding:14px 0;}
   .review-item:last-child{border-bottom:none;}
   .review-item .stars{color:var(--mustard-dark);font-size:0.85rem;}
+
+  /* Image manager (multi-upload) */
+  .img-manager{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;}
+  .img-manager-item{
+    position:relative;width:92px;height:92px;border-radius:10px;overflow:hidden;
+    border:1px solid #EAE3D6;background:#F4EEE1;
+  }
+  .img-manager-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  .img-manager-remove{
+    position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;
+    background:rgba(18,51,40,.75);color:#fff;border:none;font-size:0.85rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;line-height:1;
+  }
+  .img-manager-remove:hover{background:var(--pink-text);}
+  .img-manager-cover{
+    position:absolute;bottom:4px;left:4px;background:rgba(18,51,40,.75);color:#fff;
+    font-size:0.62rem;font-weight:700;padding:2px 6px;border-radius:999px;
+  }
+  .img-manager-add{
+    width:92px;height:92px;border-radius:10px;border:2px dashed var(--mustard);
+    background:#FFF9EE;color:var(--mustard-dark);font-size:0.78rem;font-weight:600;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    cursor:pointer;
+  }
+  .img-manager-add .plus{font-size:1.4rem;line-height:1;}
+  .img-manager-add:hover{background:#FCEBD1;}
+  .img-manager-add:disabled{opacity:.6;cursor:not-allowed;}
+  .img-manager-hint{font-size:0.78rem;color:var(--text-muted);margin:-6px 0 16px;}
 </style>
 </head>
 <body>
@@ -45,7 +72,16 @@
 
   <div class="dash-card">
     <h3 style="margin-bottom:18px;">Informasi Toko</h3>
-    <img id="dashThumb" class="dash-thumb" alt="Gambar toko">
+
+    <label style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:8px;">Gambar Toko</label>
+    <div class="img-manager" id="imgManager">
+      <button type="button" class="img-manager-add" id="imgManagerAddBtn">
+        <span class="plus">+</span>
+        <span>Tambah</span>
+      </button>
+    </div>
+    <p class="img-manager-hint">Bisa pilih beberapa gambar sekaligus. Gambar pertama jadi sampul. Maks 3MB per gambar (JPG/PNG/WEBP).</p>
+    <input type="file" id="storeImageInput" accept="image/jpeg,image/png,image/webp" multiple style="display:none;">
 
     <form id="storeForm">
       <div class="dash-field">
@@ -66,10 +102,6 @@
           <input type="time" id="storeJamTutup">
         </div>
       </div>
-      <div class="dash-field">
-        <label for="storeImage">Ganti Gambar Toko</label>
-        <input type="file" id="storeImage" accept="image/jpeg,image/png,image/webp">
-      </div>
 
       <button type="submit" class="btn btn-mustard" style="width:100%;">Simpan Perubahan</button>
       <div class="dash-msg" id="dashMsg"></div>
@@ -84,11 +116,88 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
-  var currentImageUrl = "";
+  var STORE_IMAGES = []; // array url string, urutan = urutan tampil, index 0 = sampul
 
   function escapeHtml(str) {
     return $("<div>").text(str == null ? "" : str).html();
   }
+
+  function parseImages(raw) {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw.filter(Boolean);
+    try {
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(Boolean) : (raw ? [raw] : []);
+    } catch (e) {
+      return raw ? [raw] : [];
+    }
+  }
+
+  function renderImageManager() {
+    var $manager = $("#imgManager");
+    $manager.find(".img-manager-item").remove();
+
+    STORE_IMAGES.forEach(function (url, idx) {
+      var $item = $(
+        '<div class="img-manager-item">' +
+          '<img src="' + escapeHtml(url) + '" alt="Gambar toko ' + (idx + 1) + '">' +
+          (idx === 0 ? '<span class="img-manager-cover">Sampul</span>' : '') +
+          '<button type="button" class="img-manager-remove" data-idx="' + idx + '" title="Hapus gambar">&times;</button>' +
+        '</div>'
+      );
+      $item.insertBefore("#imgManagerAddBtn");
+    });
+  }
+
+  $(document).on("click", ".img-manager-remove", function () {
+    var idx = $(this).data("idx");
+    STORE_IMAGES.splice(idx, 1);
+    renderImageManager();
+  });
+
+  $("#imgManagerAddBtn").on("click", function () {
+    $("#storeImageInput").trigger("click");
+  });
+
+  $("#storeImageInput").on("change", function () {
+    var files = Array.from(this.files || []);
+    if (!files.length) return;
+
+    var $msg = $("#dashMsg");
+    $msg.removeClass("show ok err");
+
+    var $addBtn = $("#imgManagerAddBtn");
+    $addBtn.prop("disabled", true).html('<span class="plus">⏳</span><span>Mengupload...</span>');
+
+    var uploads = files.map(function (file) {
+      var formData = new FormData();
+      formData.append("image", file);
+      return $.ajax({
+        url: "/api/toko/upload",
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+      });
+    });
+
+    $.when.apply($, uploads)
+      .done(function () {
+        var results = uploads.length === 1 ? [arguments] : arguments;
+        Array.prototype.forEach.call(results, function (res) {
+          var data = res[0];
+          if (data && data.url) STORE_IMAGES.push(data.url);
+        });
+        renderImageManager();
+      })
+      .fail(function () {
+        $msg.addClass("show err").text("Sebagian atau semua gambar gagal diupload. Coba lagi.");
+      })
+      .always(function () {
+        $addBtn.prop("disabled", false).html('<span class="plus">+</span><span>Tambah</span>');
+        $("#storeImageInput").val("");
+      });
+  });
 
   // Guard: pastikan yang buka halaman ini memang akun toko yang sudah approved.
   $.getJSON("/api/user/me")
@@ -119,16 +228,8 @@
       $("#storeJamBuka").val(s.jam_buka || "");
       $("#storeJamTutup").val(s.jam_tutup || "");
 
-      currentImageUrl = s.image_url || "";
-      var firstImage = currentImageUrl;
-      try {
-        var parsed = JSON.parse(currentImageUrl);
-        if (Array.isArray(parsed) && parsed.length) firstImage = parsed[0];
-      } catch (e) {}
-
-      if (firstImage) {
-        $("#dashThumb").attr("src", firstImage).show();
-      }
+      STORE_IMAGES = parseImages(s.image_url);
+      renderImageManager();
     });
   }
 
@@ -160,51 +261,28 @@
     var $msg = $("#dashMsg");
     $msg.removeClass("show ok err");
 
-    var fileInput = $("#storeImage")[0];
+    var payload = {
+      nama: $("#storeNama").val().trim(),
+      alamat: $("#storeAlamat").val().trim(),
+      jam_buka: $("#storeJamBuka").val(),
+      jam_tutup: $("#storeJamTutup").val(),
+      images: STORE_IMAGES,
+    };
 
-    function savePayload(imageUrl) {
-      var payload = {
-        nama: $("#storeNama").val().trim(),
-        alamat: $("#storeAlamat").val().trim(),
-        jam_buka: $("#storeJamBuka").val(),
-        jam_tutup: $("#storeJamTutup").val(),
-      };
-      if (imageUrl !== undefined) payload.image_url = imageUrl;
-
-      $.ajax({
-        url: "/api/toko/me",
-        method: "PUT",
-        contentType: "application/json",
-        data: JSON.stringify(payload),
+    $.ajax({
+      url: "/api/toko/me",
+      method: "PUT",
+      contentType: "application/json",
+      data: JSON.stringify(payload),
+    })
+      .done(function () {
+        $msg.addClass("show ok").text("Perubahan tersimpan.");
+        loadStore();
       })
-        .done(function () {
-          $msg.addClass("show ok").text("Perubahan tersimpan.");
-          loadStore();
-        })
-        .fail(function (xhr) {
-          var err = (xhr.responseJSON && xhr.responseJSON.error) || "Gagal menyimpan.";
-          $msg.addClass("show err").text(err);
-        });
-    }
-
-    if (fileInput.files && fileInput.files[0]) {
-      var formData = new FormData();
-      formData.append("image", fileInput.files[0]);
-      $.ajax({
-        url: "/api/toko/upload",
-        method: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-      })
-        .done(function (res) { savePayload(res.url); })
-        .fail(function (xhr) {
-          var err = (xhr.responseJSON && xhr.responseJSON.error) || "Upload gambar gagal.";
-          $msg.addClass("show err").text(err);
-        });
-    } else {
-      savePayload(undefined);
-    }
+      .fail(function (xhr) {
+        var err = (xhr.responseJSON && xhr.responseJSON.error) || "Gagal menyimpan.";
+        $msg.addClass("show err").text(err);
+      });
   });
 </script>
 
