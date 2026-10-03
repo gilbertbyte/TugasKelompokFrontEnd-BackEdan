@@ -298,18 +298,16 @@ $(function () {
 
   function applyFilter() {
     var nama = $("#filterNama").val().trim().toLowerCase();
-    var kota = $("#filterKota").val().trim().toLowerCase();
     var status = $("#filterStatus").val();
     var sort = $("#filterSort").val();
 
     var filtered = STATE.stores.filter(function (t) {
       var matchNama = !nama || t.nama.toLowerCase().indexOf(nama) !== -1;
-      var matchKota = !kota || (t.alamat || "").toLowerCase().indexOf(kota) !== -1;
       var matchStatus =
         status === "Semua Status" ||
         (status === "Buka" && storeIsOpen(t)) ||
         (status === "Tutup" && !storeIsOpen(t));
-      return matchNama && matchKota && matchStatus;
+      return matchNama && matchStatus;
     });
 
     if (sort === "Rating Tertinggi") {
