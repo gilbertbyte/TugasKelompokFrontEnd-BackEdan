@@ -326,7 +326,6 @@ $(function () {
         { name: "jam_buka", label: "Jam Buka", type: "time", required: true },
         { name: "jam_tutup", label: "Jam Tutup", type: "time", required: true },
         { name: "rating", label: "Rating", type: "number", step: "0.1", min: "0", max: "5" },
-        { name: "ulasan_count", label: "Jumlah Ulasan", type: "number", min: "0" },
         { name: "image_url", label: "Gambar Toko (pilih satu atau lebih)", type: "image" },
         {
           name: "approval_status",
