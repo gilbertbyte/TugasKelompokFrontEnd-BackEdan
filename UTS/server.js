@@ -12,6 +12,7 @@ const authRoutes = require("./routes/auth");
 const adminApiRoutes = require("./routes/admin");
 const publicApiRoutes = require("./routes/public");
 const { requireAuth } = require("./middleware/auth");
+const tokoRoutes = require("./routes/toko");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/api/user", userAuthRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+app.use("/api/toko", tokoRoutes);
 app.use("/", publicApiRoutes);
 
 app.use("/admin/auth", authRoutes);

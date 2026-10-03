@@ -168,6 +168,12 @@ if (!hadApprovedColumn) {
 }
 ensureColumn("faqs", "sort_order", "INTEGER DEFAULT 0");
 
+// Role & toko self-registration
+ensureColumn("users", "role", "TEXT DEFAULT 'user'");
+ensureColumn("users", "status", "TEXT DEFAULT 'approved'");
+ensureColumn("users", "store_id", "INTEGER REFERENCES stores(id)");
+
+ensureColumn("stores", "approval_status", "TEXT DEFAULT 'approved'");
 
 function seedContentBlock(key, defaultData) {
   const existing = db.prepare("SELECT key FROM content_blocks WHERE key = ?").get(key);

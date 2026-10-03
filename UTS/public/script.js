@@ -470,10 +470,16 @@ $(function () {
 
   function openAuthModal(tab) {
     $("#authError").removeClass("show").text("");
+    $("#registerTokoSuccess").remove();
     $(".modal-tab").removeClass("active");
     $('.modal-tab[data-tab="' + (tab || "login") + '"]').addClass("active");
     $("#loginForm").toggle(tab !== "register");
     $("#registerForm").toggle(tab === "register");
+    $(".type-toggle-btn").removeClass("active");
+    $('.type-toggle-btn[data-register-type="user"]').addClass("active");
+    $("#registerType").val("user");
+    $("#registerTokoFields").hide();
+    $("#registerNamaToko").prop("required", false);
     $("#authModalOverlay").addClass("open");
   }
 
@@ -483,6 +489,16 @@ $(function () {
 
   $(document).on("click", "#loginBtn", function () {
     openAuthModal("login");
+  });
+  $(document).on("click", ".type-toggle-btn", function () {
+    var type = $(this).data("register-type");
+    $(".type-toggle-btn").removeClass("active");
+    $(this).addClass("active");
+    $("#registerType").val(type);
+
+    var isToko = type === "toko";
+    $("#registerTokoFields").toggle(isToko);
+    $("#registerNamaToko").prop("required", isToko);
   });
 
   $("#authModalClose").on("click", closeAuthModal);
@@ -561,6 +577,10 @@ $(function () {
       data: JSON.stringify(payload),
     })
       .done(function (data) {
+        if (data.role === "toko") {
+          window.location.href = "/toko-dashboard.html";
+          return;
+        }
         closeAuthModal();
         renderAuthArea({ nama: data.nama, email: data.email });
         $("#loginForm")[0].reset();
@@ -720,6 +740,41 @@ $(function () {
     e.preventDefault();
     $("#authError").removeClass("show").text("");
 
+    var isToko = $("#registerType").val() === "toko";
+
+    if (isToko) {
+      var tokoPayload = {
+        nama: $("#registerNama").val().trim(),
+        email: $("#registerEmail").val().trim(),
+        password: $("#registerPassword").val(),
+        nama_toko: $("#registerNamaToko").val().trim(),
+        alamat: $("#registerAlamatToko").val().trim(),
+      };
+
+      $.ajax({
+        url: "/api/user/register-toko",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(tokoPayload),
+      })
+        .done(function (data) {
+          $("#registerForm").hide();
+          $("#authError").removeClass("show").text("");
+          $("#authModalOverlay .modal-box").append(
+            '<p class="modal-success show" id="registerTokoSuccess">' + escapeHtml(data.message) + "</p>"
+          );
+          $("#registerForm")[0].reset();
+          $("#registerTokoFields").hide();
+        })
+        .fail(function (xhr) {
+          var msg =
+            (xhr.responseJSON && xhr.responseJSON.error) ||
+            "Registrasi gagal. Coba lagi.";
+          showAuthError(msg);
+        });
+      return;
+    }
+
     var payload = {
       nama: $("#registerNama").val().trim(),
       email: $("#registerEmail").val().trim(),
@@ -743,6 +798,6 @@ $(function () {
           "Registrasi gagal. Coba lagi.";
         showAuthError(msg);
       });
-  });
+  });;
 
 });

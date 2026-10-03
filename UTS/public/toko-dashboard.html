@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Toko — Pisang Ijo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .dash-wrap{max-width:640px;margin:0 auto;padding:48px 24px 80px;}
+  .dash-card{background:var(--white);border:1px solid #EAE3D6;border-radius:var(--radius-lg);padding:32px;margin-bottom:24px;}
+  .dash-field{margin-bottom:16px;}
+  .dash-field label{display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:6px;}
+  .dash-field input,.dash-field textarea{
+    width:100%;padding:11px 14px;border-radius:8px;border:1px solid #DCD4C4;
+    font-family:var(--font-body);font-size:0.95rem;
+  }
+  .dash-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .dash-msg{font-size:0.88rem;margin-top:14px;padding:12px 14px;border-radius:8px;display:none;}
+  .dash-msg.show{display:block;}
+  .dash-msg.ok{background:var(--green-tint);color:var(--green-dark);}
+  .dash-msg.err{background:var(--pink);color:var(--pink-text);}
+  .dash-thumb{width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:none;}
+  .review-item{border-bottom:1px solid #EAE3D6;padding:14px 0;}
+  .review-item:last-child{border-bottom:none;}
+  .review-item .stars{color:var(--mustard-dark);font-size:0.85rem;}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="logo">Pisang Ijo</a>
+    <div class="admin-user" style="display:flex;align-items:center;gap:14px;">
+      <span id="dashWhoami" style="color:#D9E6DE;font-size:0.9rem;"></span>
+      <button class="btn btn-outline-light" id="dashLogoutBtn">Logout</button>
+    </div>
+  </div>
+</header>
+
+<section class="dash-wrap">
+  <h2>Dashboard Toko</h2>
+  <p class="section-sub" style="margin-bottom:24px;">Kelola informasi toko kamu di sini.</p>
+
+  <div class="dash-card">
+    <h3 style="margin-bottom:18px;">Informasi Toko</h3>
+    <img id="dashThumb" class="dash-thumb" alt="Gambar toko">
+
+    <form id="storeForm">
+      <div class="dash-field">
+        <label for="storeNama">Nama Toko</label>
+        <input type="text" id="storeNama" required>
+      </div>
+      <div class="dash-field">
+        <label for="storeAlamat">Alamat</label>
+        <textarea id="storeAlamat" rows="2"></textarea>
+      </div>
+      <div class="dash-row">
+        <div class="dash-field">
+          <label for="storeJamBuka">Jam Buka</label>
+          <input type="time" id="storeJamBuka">
+        </div>
+        <div class="dash-field">
+          <label for="storeJamTutup">Jam Tutup</label>
+          <input type="time" id="storeJamTutup">
+        </div>
+      </div>
+      <div class="dash-field">
+        <label for="storeImage">Ganti Gambar Toko</label>
+        <input type="file" id="storeImage" accept="image/jpeg,image/png,image/webp">
+      </div>
+
+      <button type="submit" class="btn btn-mustard" style="width:100%;">Simpan Perubahan</button>
+      <div class="dash-msg" id="dashMsg"></div>
+    </form>
+  </div>
+
+  <div class="dash-card">
+    <h3 style="margin-bottom:18px;">Ulasan Masuk</h3>
+    <div id="reviewsList"><p class="section-sub">Memuat ulasan...</p></div>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+  var currentImageUrl = "";
+
+  function escapeHtml(str) {
+    return $("<div>").text(str == null ? "" : str).html();
+  }
+
+  // Guard: pastikan yang buka halaman ini memang akun toko yang sudah approved.
+  $.getJSON("/api/user/me")
+    .done(function (data) {
+      if (!data.loggedIn || data.role !== "toko" || data.status !== "approved") {
+        window.location.href = "/";
+        return;
+      }
+      $("#dashWhoami").text("Halo, " + data.nama);
+      loadStore();
+      loadReviews();
+    })
+    .fail(function () {
+      window.location.href = "/";
+    });
+
+  $("#dashLogoutBtn").on("click", function () {
+    $.post("/api/user/logout").always(function () {
+      window.location.href = "/";
+    });
+  });
+
+  function loadStore() {
+    $.getJSON("/api/toko/me").done(function (data) {
+      var s = data.store || {};
+      $("#storeNama").val(s.nama || "");
+      $("#storeAlamat").val(s.alamat || "");
+      $("#storeJamBuka").val(s.jam_buka || "");
+      $("#storeJamTutup").val(s.jam_tutup || "");
+
+      currentImageUrl = s.image_url || "";
+      var firstImage = currentImageUrl;
+      try {
+        var parsed = JSON.parse(currentImageUrl);
+        if (Array.isArray(parsed) && parsed.length) firstImage = parsed[0];
+      } catch (e) {}
+
+      if (firstImage) {
+        $("#dashThumb").attr("src", firstImage).show();
+      }
+    });
+  }
+
+  function loadReviews() {
+    $.getJSON("/api/toko/testimonials").done(function (rows) {
+      var $list = $("#reviewsList").empty();
+      if (!rows.length) {
+        $list.append('<p class="section-sub">Belum ada ulasan masuk.</p>');
+        return;
+      }
+      rows.forEach(function (r) {
+        var starCount = Number(r.stars) || 5;
+        var stars = "★".repeat(starCount) + "☆".repeat(5 - starCount);
+        var statusLabel = Number(r.approved) === 1 ? "" : ' <span style="color:#C9852A;">(menunggu approval admin)</span>';
+        $list.append(
+          '<div class="review-item">' +
+            '<div class="stars">' + stars + '</div>' +
+            '<strong>' + escapeHtml(r.nama) + '</strong>' + statusLabel +
+            '<p style="margin:6px 0 0;">' + escapeHtml(r.ulasan) + '</p>' +
+            '<p class="section-sub" style="margin:4px 0 0;font-size:0.8rem;">' + escapeHtml(r.waktu) + '</p>' +
+          '</div>'
+        );
+      });
+    });
+  }
+
+  $("#storeForm").on("submit", function (e) {
+    e.preventDefault();
+    var $msg = $("#dashMsg");
+    $msg.removeClass("show ok err");
+
+    var fileInput = $("#storeImage")[0];
+
+    function savePayload(imageUrl) {
+      var payload = {
+        nama: $("#storeNama").val().trim(),
+        alamat: $("#storeAlamat").val().trim(),
+        jam_buka: $("#storeJamBuka").val(),
+        jam_tutup: $("#storeJamTutup").val(),
+      };
+      if (imageUrl !== undefined) payload.image_url = imageUrl;
+
+      $.ajax({
+        url: "/api/toko/me",
+        method: "PUT",
+        contentType: "application/json",
+        data: JSON.stringify(payload),
+      })
+        .done(function () {
+          $msg.addClass("show ok").text("Perubahan tersimpan.");
+          loadStore();
+        })
+        .fail(function (xhr) {
+          var err = (xhr.responseJSON && xhr.responseJSON.error) || "Gagal menyimpan.";
+          $msg.addClass("show err").text(err);
+        });
+    }
+
+    if (fileInput.files && fileInput.files[0]) {
+      var formData = new FormData();
+      formData.append("image", fileInput.files[0]);
+      $.ajax({
+        url: "/api/toko/upload",
+        method: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+      })
+        .done(function (res) { savePayload(res.url); })
+        .fail(function (xhr) {
+          var err = (xhr.responseJSON && xhr.responseJSON.error) || "Upload gambar gagal.";
+          $msg.addClass("show err").text(err);
+        });
+    } else {
+      savePayload(undefined);
+    }
+  });
+</script>
+
+</body>
+</html>

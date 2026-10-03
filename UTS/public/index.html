@@ -333,6 +333,15 @@
 
     <form id="registerForm" class="modal-form" style="display:none;">
       <div class="field">
+        <label>Daftar sebagai</label>
+        <div class="register-type-toggle">
+          <button type="button" class="type-toggle-btn active" data-register-type="user">Pengguna Biasa</button>
+          <button type="button" class="type-toggle-btn" data-register-type="toko">Pemilik Toko</button>
+        </div>
+        <input type="hidden" id="registerType" value="user">
+      </div>
+
+      <div class="field">
         <label for="registerNama">Nama</label>
         <input type="text" id="registerNama" required autocomplete="name">
       </div>
@@ -345,6 +354,19 @@
         <input type="password" id="registerPassword" required minlength="8" autocomplete="new-password">
         <p class="field-hint">Minimal 8 karakter</p>
       </div>
+
+      <div id="registerTokoFields" style="display:none;">
+        <div class="field">
+          <label for="registerNamaToko">Nama Toko</label>
+          <input type="text" id="registerNamaToko" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label for="registerAlamatToko">Alamat Toko</label>
+          <textarea id="registerAlamatToko" rows="2"></textarea>
+        </div>
+        <p class="field-hint">Pendaftaran toko akan ditinjau admin sebelum bisa login dan tampil ke publik.</p>
+      </div>
+
       <button type="submit" class="btn btn-mustard modal-submit">Daftar</button>
     </form>
   </div>

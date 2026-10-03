@@ -575,6 +575,25 @@ p{margin:0 0 8px;}
   border:1px solid #DCD4C4;font-family:var(--font-body);font-size:0.92rem;
 }
 .field-hint{font-size:0.78rem;color:var(--text-muted);margin-top:4px;margin-bottom:0;}
+.register-type-toggle{display:flex;gap:10px;margin-top:4px;}
+.type-toggle-btn{
+  flex:1;
+  padding:10px 16px;
+  border:1px solid #DCD4C4;
+  border-radius:999px;
+  background:var(--white);
+  color:var(--text-dark);
+  font-family:var(--font-body);
+  font-size:0.88rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:background .15s ease, color .15s ease, border-color .15s ease;
+}
+.type-toggle-btn.active{
+  background:var(--green-dark);
+  color:var(--white);
+  border-color:var(--green-dark);
+}
 .modal-submit{width:100%;margin-top:4px;}
 .modal-error{
   display:none;

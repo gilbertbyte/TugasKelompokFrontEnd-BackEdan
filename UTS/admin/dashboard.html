@@ -20,6 +20,7 @@
     <nav class="admin-sidebar">
       <button class="tab-btn active" data-tab="hero"><span class="tab-icon">🏠</span> Homepage Content</button>
       <button class="tab-btn" data-tab="toko"><span class="tab-icon">🏪</span> Store Directory</button>
+      <button class="tab-btn" data-tab="toko_approval"><span class="tab-icon">✅</span> Store Approvals<span class="tab-count" id="pendingCount" style="display:none;"></span></button>
       <button class="tab-btn" data-tab="menu"><span class="tab-icon">🍽️</span> Menu Catalog</button>
       <button class="tab-btn" data-tab="tentang"><span class="tab-icon">📖</span> About &amp; History</button>
       <button class="tab-btn" data-tab="testimoni"><span class="tab-icon">💬</span> Customer Reviews</button>
@@ -98,7 +99,23 @@
         <button class="btn-primary add-item-btn" data-list="stores">+ Add Store</button>
         <table class="admin-table" data-list-table="stores">
           <thead>
-            <tr><th>Image</th><th>Name</th><th>Address</th><th>Hours</th><th>Status</th><th>Rating</th><th>Reviews</th><th></th></tr>
+            <tr><th>Image</th><th>Name</th><th>Address</th><th>Hours</th><th>Status</th><th>Approval</th><th>Rating</th><th>Reviews</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section class="tab-panel" id="tab-toko_approval">
+        <div class="panel-header">
+          <div>
+            <h1>Store Approvals</h1>
+            <p class="panel-subtitle">Review store registrations submitted by store owners before they go live.</p>
+          </div>
+        </div>
+
+        <table class="admin-table" data-list-table="toko_pending">
+          <thead>
+            <tr><th>Store Name</th><th>Address</th><th>Registered By</th><th>Email</th><th>Submitted</th><th></th></tr>
           </thead>
           <tbody></tbody>
         </table>

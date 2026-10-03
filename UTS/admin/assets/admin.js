@@ -319,7 +319,7 @@ $(function () {
     stores: {
       title: "Toko",
       endpoint: "stores",
-      columns: ["image_url", "nama", "alamat", "jam_buka", "status", "rating", "ulasan_count"],
+      columns: ["image_url", "nama", "alamat", "jam_buka", "status", "approval_status", "rating", "ulasan_count"],
       fields: [
         { name: "nama", label: "Nama Toko", type: "text", required: true },
         { name: "alamat", label: "Alamat", type: "text" },
@@ -328,6 +328,13 @@ $(function () {
         { name: "rating", label: "Rating", type: "number", step: "0.1", min: "0", max: "5" },
         { name: "ulasan_count", label: "Jumlah Ulasan", type: "number", min: "0" },
         { name: "image_url", label: "Gambar Toko (pilih satu atau lebih)", type: "image" },
+        {
+          name: "approval_status",
+          label: "Status Approval",
+          type: "select",
+          options: ["pending", "approved", "rejected"],
+          optionLabels: { pending: "Menunggu", approved: "Disetujui", rejected: "Ditolak" },
+        },
       ],
     },
     menu: {
@@ -415,6 +422,19 @@ $(function () {
               ';padding:4px 10px;border-radius:999px;font-size:0.78rem;font-weight:600;">' +
               label +
               "</span></td>"
+            );
+          }
+          if (col === "approval_status") {
+            var badgeMap = {
+              approved: { bg: "#E9F1EA", fg: "#1E4D3B", label: "Disetujui" },
+              pending: { bg: "#FCEBD1", fg: "#C9852A", label: "Menunggu" },
+              rejected: { bg: "#F6D9DE", fg: "#B23A55", label: "Ditolak" },
+            };
+            var b = badgeMap[val] || badgeMap.pending;
+            return (
+              '<td><span style="background:' + b.bg + ";color:" + b.fg +
+              ';padding:4px 10px;border-radius:999px;font-size:0.78rem;font-weight:600;">' +
+              b.label + "</span></td>"
             );
           }
           if (col === "store_id") {
@@ -582,5 +602,80 @@ $(function () {
         alert("Gagal menyimpan.");
       });
   });
+
+  /* ---------- Store Approvals ---------- */
+
+  function loadTokoPending() {
+    $.get("/admin/api/toko-pending")
+      .done(function (items) {
+        renderTokoPendingTable(items);
+        var $count = $("#pendingCount");
+        if (items.length) {
+          $count.text(items.length).show();
+        } else {
+          $count.hide();
+        }
+      })
+      .fail(handleAuthFail);
+  }
+
+  function renderTokoPendingTable(items) {
+    var $tbody = $('[data-list-table="toko_pending"] tbody').empty();
+
+    if (!items.length) {
+      $tbody.append('<tr><td colspan="6" style="color:#5B6B62;">Tidak ada pendaftaran yang menunggu.</td></tr>');
+      return;
+    }
+
+    items.forEach(function (item) {
+      var $row = $(
+        "<tr>" +
+          "<td>" + escapeHtml(item.store_nama) + "</td>" +
+          "<td>" + escapeHtml(item.store_alamat || "-") + "</td>" +
+          "<td>" + escapeHtml(item.nama) + "</td>" +
+          "<td>" + escapeHtml(item.email) + "</td>" +
+          "<td>" + escapeHtml(item.created_at) + "</td>" +
+          '<td class="row-actions">' +
+            '<button class="approve-toko-btn" data-user-id="' + item.user_id + '" style="background:none;border:none;color:#1E4D3B;font-weight:600;cursor:pointer;padding:4px 8px;">Approve</button>' +
+            '<button class="reject-toko-btn" data-user-id="' + item.user_id + '" style="background:none;border:none;color:#B23A55;font-weight:600;cursor:pointer;padding:4px 8px;">Reject</button>' +
+          "</td>" +
+        "</tr>"
+      );
+      $tbody.append($row);
+    });
+  }
+
+  $(document).on("click", ".approve-toko-btn", function () {
+    var userId = $(this).data("user-id");
+    if (!confirm("Setujui pendaftaran toko ini? Toko akan langsung tampil ke publik.")) return;
+
+    $.post("/admin/api/toko-pending/" + userId + "/approve")
+      .done(function () {
+        loadTokoPending();
+        loadStoresCache();
+        loadList("stores");
+      })
+      .fail(function (xhr) {
+        handleAuthFail(xhr);
+        alert("Gagal menyetujui pendaftaran.");
+      });
+  });
+
+  $(document).on("click", ".reject-toko-btn", function () {
+    var userId = $(this).data("user-id");
+    if (!confirm("Tolak pendaftaran toko ini?")) return;
+
+    $.post("/admin/api/toko-pending/" + userId + "/reject")
+      .done(function () {
+        loadTokoPending();
+      })
+      .fail(function (xhr) {
+        handleAuthFail(xhr);
+        alert("Gagal menolak pendaftaran.");
+      });
+  });
+
+  loadTokoPending();
+  window.setInterval(loadTokoPending, 60000);
 
 });
