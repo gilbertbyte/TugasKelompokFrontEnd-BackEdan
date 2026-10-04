@@ -584,13 +584,20 @@ $(function () {
     currentUser = user || null;
     var $area = $("#authArea").empty();
     if (user) {
-      $area.append(
-        $('<div class="user-chip"></div>')
-          .append($("<span></span>").text("Hai, " + user.nama))
-          .append(
-            $('<button class="btn btn-outline-light" id="logoutBtn">Logout</button>')
-          )
+      var $chip = $('<div class="user-chip"></div>')
+        .append($("<span></span>").text("Hai, " + user.nama));
+
+      if (user.role === "toko") {
+        $chip.append(
+          $('<a href="/toko-dashboard.html" class="btn btn-mustard">Dashboard Toko</a>')
+        );
+      }
+
+      $chip.append(
+        $('<button class="btn btn-outline-light" id="logoutBtn">Logout</button>')
       );
+
+      $area.append($chip);
       $("#navWishlist").show();
       loadWishlistIds();
     } else {
@@ -614,7 +621,7 @@ $(function () {
   function checkAuthStatus() {
     $.getJSON("/api/user/me").done(function (data) {
       if (data.loggedIn) {
-        renderAuthArea({ nama: data.nama, email: data.email });
+        renderAuthArea({ nama: data.nama, email: data.email, role: data.role });
       }
     });
   }
@@ -657,43 +664,34 @@ $(function () {
 
   /* ---------- Detail modals (toko & menu) ---------- */
 
-  // Klik link/anchor di dalam store-card (mis. "Lihat Detail") tidak boleh ikut
-  // pindah halaman (href="#"), tapi klik tetap boleh menggelembung ke handler
-  // .store-card di bawah supaya modal Detail Toko tetap terbuka.
   $(document).on("click", ".store-card a", function (e) {
     e.preventDefault();
   });
 
-  // Tombol wishlist tidak boleh ikut membuka modal detail.
   $(document).on("click", ".wishlist-btn", function (e) {
     e.stopPropagation();
   });
 
-  // Tombol "Lihat Toko Ini" pada kartu menu -> buka Detail Toko
   $(document).on("click", ".menu-toko-link", function (e) {
     e.preventDefault();
     e.stopPropagation();
     openStoreDetail($(this).data("store-id"));
   });
 
-  // Klik kartu toko (Toko Populer maupun hasil pencarian) -> buka Detail Toko
   $(document).on("click", ".store-card", function () {
     openStoreDetail($(this).data("store-id"));
   });
 
-  // Klik kartu menu -> buka Detail Menu
   $(document).on("click", ".menu-card", function () {
     openMenuDetail($(this).data("menu-id"));
   });
 
-  // Klik menu di dalam Detail Toko -> pindah ke Detail Menu
   $(document).on("click", ".mini-menu-card", function () {
     var menuId = $(this).data("menu-id");
     closeStoreDetail();
     openMenuDetail(menuId);
   });
 
-  // Klik info toko di dalam Detail Menu -> pindah ke Detail Toko
   $(document).on("click", ".detail-store-link", function () {
     var storeId = $(this).data("store-id");
     closeMenuDetail();
@@ -859,6 +857,6 @@ $(function () {
           "Registrasi gagal. Coba lagi.";
         showAuthError(msg);
       });
-  });;
+  });
 
 });

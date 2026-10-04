@@ -14,6 +14,19 @@ $(function () {
     if (xhr.status === 401) window.location.href = "/admin/login";
   }
 
+  function showConfirm(message, onConfirm) {
+    $("#confirmModalMessage").text(message);
+    $("#confirmModal").addClass("open");
+
+    $("#confirmModalOk").off("click").on("click", function () {
+      $("#confirmModal").removeClass("open");
+      onConfirm();
+    });
+    $("#confirmModalCancel").off("click").on("click", function () {
+      $("#confirmModal").removeClass("open");
+    });
+  }
+
   function parseImageList(value) {
     if (Array.isArray(value)) return value.filter(Boolean);
     if (typeof value !== "string" || !value) return [];
@@ -606,15 +619,15 @@ $(function () {
     var id = $(this).data("id");
     var config = LIST_CONFIG[listKey];
 
-    if (!confirm("Hapus item ini?")) return;
-
-    $.ajax({ url: "/admin/api/" + config.endpoint + "/" + id, method: "DELETE" })
-      .done(function () { loadList(listKey); })
-      .fail(function (xhr) {
-        handleAuthFail(xhr);
-        var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Gagal menghapus.";
-        alert(msg);
-      });
+    showConfirm("Hapus item ini?", function () {
+      $.ajax({ url: "/admin/api/" + config.endpoint + "/" + id, method: "DELETE" })
+        .done(function () { loadList(listKey); })
+        .fail(function (xhr) {
+          handleAuthFail(xhr);
+          var msg = (xhr.responseJSON && xhr.responseJSON.error) || "Gagal menghapus.";
+          alert(msg);
+        });
+    });
   });
 
   $("#itemForm").on("submit", function (e) {
@@ -700,32 +713,34 @@ $(function () {
 
   $(document).on("click", ".approve-toko-btn", function () {
     var userId = $(this).data("user-id");
-    if (!confirm("Setujui pendaftaran toko ini? Toko akan langsung tampil ke publik.")) return;
 
-    $.post("/admin/api/toko-pending/" + userId + "/approve")
-      .done(function () {
-        loadTokoPending();
-        loadStoresCache();
-        loadList("stores");
-      })
-      .fail(function (xhr) {
-        handleAuthFail(xhr);
-        alert("Gagal menyetujui pendaftaran.");
-      });
+    showConfirm("Setujui pendaftaran toko ini? Toko akan langsung tampil ke publik.", function () {
+      $.post("/admin/api/toko-pending/" + userId + "/approve")
+        .done(function () {
+          loadTokoPending();
+          loadStoresCache();
+          loadList("stores");
+        })
+        .fail(function (xhr) {
+          handleAuthFail(xhr);
+          alert("Gagal menyetujui pendaftaran.");
+        });
+    });
   });
 
   $(document).on("click", ".reject-toko-btn", function () {
     var userId = $(this).data("user-id");
-    if (!confirm("Tolak pendaftaran toko ini?")) return;
 
-    $.post("/admin/api/toko-pending/" + userId + "/reject")
-      .done(function () {
-        loadTokoPending();
-      })
-      .fail(function (xhr) {
-        handleAuthFail(xhr);
-        alert("Gagal menolak pendaftaran.");
-      });
+    showConfirm("Tolak pendaftaran toko ini?", function () {
+      $.post("/admin/api/toko-pending/" + userId + "/reject")
+        .done(function () {
+          loadTokoPending();
+        })
+        .fail(function (xhr) {
+          handleAuthFail(xhr);
+          alert("Gagal menolak pendaftaran.");
+        });
+    });
   });
 
   loadTokoPending();
