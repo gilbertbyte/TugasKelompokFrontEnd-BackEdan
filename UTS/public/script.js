@@ -3,7 +3,7 @@ $(function () {
   var STATE = { stores: [], menu: [] };
   var WISHLIST_IDS = { menu: {}, store: {} };
 
-  /* ---------- Helpers ---------- */
+  /*Helpers*/
 
   function escapeHtml(str) {
     return $("<div>").text(str == null ? "" : str).html();
@@ -109,7 +109,7 @@ $(function () {
       (isSaved ? "♥" : "♡") + "</button>";
   }
 
-  /* ---------- Wishlist ("List yang pengen kamu coba") ---------- */
+  /*Wishlist ("List yang pengen kamu coba")*/
 
   function loadWishlistIds() {
     $.getJSON("/api/wishlist/ids")
@@ -149,7 +149,7 @@ $(function () {
     }
   });
 
-  /* ---------- Renderers ---------- */
+  /*Renderers*/
 
   function renderTokoPopuler(list) {
     var $grid = $("#tokoPopulerGrid").empty();
@@ -259,7 +259,7 @@ $(function () {
     $("#resultsCount").text(list.length);
   }
 
-  /* ---------- Load toko & menu dari server ---------- */
+  /*Load toko & menu dari server*/
 
   function loadStoresAndMenu() {
     $.getJSON("/api/site-content")
@@ -284,7 +284,7 @@ $(function () {
 
   loadStoresAndMenu();
 
-  /* ---------- Hero search ---------- */
+  /*Hero search*/
 
   $("#heroSearchForm").on("submit", function (e) {
     e.preventDefault();
@@ -294,7 +294,7 @@ $(function () {
     applyFilter();
   });
 
-  /* ---------- Filter / search section ---------- */
+  /*Filter / search section*/
 
   function applyFilter() {
     var nama = $("#filterNama").val().trim().toLowerCase();
@@ -337,7 +337,7 @@ $(function () {
     }
   }, 60000);
 
-  /* ---------- Add to cart feedback ---------- */
+  /*Add to cart feedback*/
 
   $(document).on("click", ".add-btn", function () {
     var $btn = $(this);
@@ -345,7 +345,7 @@ $(function () {
     setTimeout(function () { $btn.text("+"); }, 900);
   });
 
-  /* ---------- FAQ accordion ---------- */
+  /*FAQ accordion*/
 
   $(".accordion-trigger").on("click", function () {
     var $item = $(this).closest(".accordion-item");
@@ -360,7 +360,7 @@ $(function () {
     }
   });
 
-  /* ---------- Tulis Ulasan (review) ---------- */
+  /*Tulis Ulasan (review)*/
 
   function fillReviewTargetOptions() {
     var type = $("#reviewTargetType").val();
@@ -439,7 +439,7 @@ $(function () {
       });
   });
 
-  /* ---------- Load testimoni dari backend (hanya yang sudah di-approve) ---------- */
+  /*Load testimoni dari backend (hanya yang sudah di-approve)*/
 
   var TESTIMONI_PAGE_SIZE = 6;
   var testimoniData = [];
@@ -528,7 +528,7 @@ $(function () {
 
   loadTestimoniFromServer();
 
-  /* ---------- Auth: modal open/close ---------- */
+  /*Auth: modal open/close*/
 
   function openAuthModal(tab) {
     $("#authError").removeClass("show").text("");
@@ -576,7 +576,7 @@ $(function () {
     $("#authError").addClass("show").text(msg);
   }
 
-  /* ---------- Auth: render logged-in state ---------- */
+  /*Auth: render logged-in state*/
 
   var currentUser = null;
 
@@ -628,7 +628,7 @@ $(function () {
 
   checkAuthStatus();
 
-  /* ---------- Auth: login submit ---------- */
+  /*Auth: login submit */
 
   $("#loginForm").on("submit", function (e) {
     e.preventDefault();
@@ -662,7 +662,7 @@ $(function () {
       });
   });
 
-  /* ---------- Detail modals (toko & menu) ---------- */
+  /* Detail modals (toko & menu)*/
 
   $(document).on("click", ".store-card a", function (e) {
     e.preventDefault();
@@ -793,7 +793,7 @@ $(function () {
     if (e.target === this) closeMenuDetail();
   });
 
-  /* ---------- Auth: register submit ---------- */
+  /* Auth: register submit*/
 
   $("#registerForm").on("submit", function (e) {
     e.preventDefault();

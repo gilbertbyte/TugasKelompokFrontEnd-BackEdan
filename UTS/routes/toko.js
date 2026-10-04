@@ -99,9 +99,7 @@ router.get("/testimonials", (req, res) => {
   res.json(rows);
 });
 
-// ---------- Menu milik toko ----------
-// Semua query di-scope ke store_id akun yang login, jadi pemilik toko
-// cuma bisa lihat/ubah/hapus menu tokonya sendiri.
+// Menu milik toko
 const MAX_MENU_IMAGES = 10;
 
 function cleanMenuBody(body) {
@@ -113,8 +111,6 @@ function cleanMenuBody(body) {
   };
 }
 
-// Baca daftar gambar dari body ("images" array, atau "image_url" string/array).
-// Return: undefined = tidak dikirim, null = tidak valid, array = daftar url.
 function readMenuImages(body) {
   const { images, image_url } = body || {};
   let list;
@@ -190,8 +186,6 @@ router.delete("/menu/:id", (req, res) => {
     .prepare("SELECT id FROM menu_items WHERE id = ? AND store_id = ?")
     .get(Number(req.params.id), req.tokoUser.store_id);
   if (!row) return res.status(404).json({ error: "Menu tidak ditemukan." });
-
-  // Bersihkan data yang nunjuk ke menu ini supaya tidak jadi data yatim.
   db.prepare("DELETE FROM testimonials WHERE target_type = 'menu' AND target_id = ?").run(row.id);
   db.prepare("DELETE FROM wishlist_items WHERE item_type = 'menu' AND item_id = ?").run(row.id);
   db.prepare("DELETE FROM menu_items WHERE id = ?").run(row.id);

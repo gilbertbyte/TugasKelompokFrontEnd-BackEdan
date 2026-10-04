@@ -204,7 +204,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
-  var STORE_IMAGES = []; // array url string, urutan = urutan tampil, index 0 = sampul
+  var STORE_IMAGES = [];
 
   function escapeHtml(str) {
     return $("<div>").text(str == null ? "" : str).html();
@@ -300,8 +300,8 @@
       });
   });
 
-  /* ---------- Menu toko ---------- */
-  var MENU_IMAGES = []; // array url gambar untuk menu yang sedang ditambahkan, index 0 = sampul
+  /* Menu toko*/
+  var MENU_IMAGES = [];
   var MENU_MAX_IMAGES = 10;
 
   function renderMenuPicker() {
@@ -388,8 +388,8 @@
       });
   });
 
-  var MENU_ROWS = []; // cache data menu terakhir dari server, dipakai saat edit
-  var EDITING_MENU_ID = null; // null = mode tambah, angka = sedang edit menu ini
+  var MENU_ROWS = [];
+  var EDITING_MENU_ID = null;
 
   function loadMenu() {
     $.getJSON("/api/toko/menu").done(function (rows) {
@@ -487,7 +487,7 @@
       });
   });
 
-  // Guard: pastikan yang buka halaman ini memang akun toko yang sudah approved.
+  // memastikan yang buka halaman ini memang akun toko yang sudah approved.
   $.getJSON("/api/user/me")
     .done(function (data) {
       if (!data.loggedIn || data.role !== "toko" || data.status !== "approved") {

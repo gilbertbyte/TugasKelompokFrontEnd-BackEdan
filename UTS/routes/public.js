@@ -3,8 +3,6 @@ const db = require("../db");
 
 const router = express.Router();
 
-
-
 router.get("/api/site-content", (req, res) => {
   const blockRows = db.prepare("SELECT key, data FROM content_blocks").all();
   const content = {};
@@ -12,11 +10,6 @@ router.get("/api/site-content", (req, res) => {
     content[row.key] = JSON.parse(row.data);
   });
 
-  // rating & ulasan_count dihitung langsung dari testimoni yang sudah
-  // disetujui (approved = 1) dan menyasar toko ini (target_type='store'),
-  // bukan dari kolom statis di tabel stores. Jadi rating selalu
-  // mencerminkan ulasan asli, dan otomatis berubah begitu ada ulasan
-  // baru yang di-approve admin.
   const stores = db
     .prepare(
       `SELECT
@@ -50,10 +43,6 @@ router.get("/api/site-content", (req, res) => {
   res.json({ content, stores, menu, testimonials, faqs });
 });
 
-// Submit a new testimonial. Requires the visitor to be logged in
-// (shares the same session as /api/user routes). New testimonials are
-// unapproved by default and only appear publicly after an admin
-// approves them from the admin panel.
 router.post("/api/testimonials", (req, res) => {
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: "Kamu harus login dulu untuk menulis ulasan." });
@@ -73,9 +62,6 @@ router.post("/api/testimonials", (req, res) => {
   if (!Number.isInteger(targetIdNum)) {
     return res.status(400).json({ error: "Toko/menu yang dipilih tidak valid." });
   }
-
-  // Look up the real name ourselves instead of trusting whatever the
-  // client sends, and confirm the store/menu actually exists.
   const targetRow =
     target_type === "store"
       ? db.prepare("SELECT id, nama FROM stores WHERE id = ?").get(targetIdNum)

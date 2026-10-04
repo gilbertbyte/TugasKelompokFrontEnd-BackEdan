@@ -250,9 +250,6 @@ registerListCrud({
     { name: "image_url", default: "" },
     { name: "approval_status", default: "approved" },
   ],
-  // Toko yang mau dihapus mungkin masih punya menu, testimoni, dan akun
-  // toko yang nempel ke dia. Beresin dulu semua itu sebelum baris toko-nya
-  // sendiri dihapus, supaya tidak gagal dan tidak ada data nyangkut.
   beforeDelete: (storeId) => {
     const menuIds = db
       .prepare("SELECT id FROM menu_items WHERE store_id = ?")
@@ -282,8 +279,6 @@ registerListCrud({
     { name: "store_id", default: null, nullable: true },
     { name: "image_url", default: "" },
   ],
-  // Testimoni yang nunjuk ke menu ini (target_type = 'menu') juga harus
-  // ikut dibersihkan, atau nanti nyangkut sebagai data yatim.
   beforeDelete: (menuId) => {
     db.prepare("DELETE FROM testimonials WHERE target_type = 'menu' AND target_id = ?").run(menuId);
   },
