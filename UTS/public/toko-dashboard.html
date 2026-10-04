@@ -8,6 +8,31 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
+  .menu-form-box{border-top:1px dashed #DCD4C4;padding-top:20px;}
+  .menu-form-box{border-top:1px dashed #DCD4C4;padding-top:20px;}
+
+  .confirm-overlay{
+    display:none;position:fixed;inset:0;background:rgba(18,51,40,.55);
+    align-items:center;justify-content:center;padding:20px;z-index:300;
+  }
+  .confirm-overlay.open{display:flex;}
+  .confirm-box{
+    background:var(--white);border-radius:var(--radius-lg);
+    padding:28px;max-width:380px;width:100%;
+    box-shadow:0 24px 60px rgba(0,0,0,.25);
+  }
+  .confirm-box h3{margin:0 0 10px;font-size:1.1rem;}
+  .confirm-box p{color:var(--text-muted);margin:0 0 20px;font-size:0.9rem;}
+  .confirm-actions{display:flex;justify-content:flex-end;gap:10px;}
+  .confirm-actions button{
+    padding:9px 18px;border-radius:999px;font-weight:600;font-size:0.88rem;
+    cursor:pointer;border:1px solid transparent;
+  }
+  .confirm-cancel{background:none;border-color:#DCD4C4;color:var(--text-dark);}
+  .confirm-cancel:hover{background:#F4EEE1;}
+  .confirm-ok{background:var(--pink-text);color:#fff;}
+  .confirm-ok:hover{filter:brightness(1.08);}
+  
   .dash-wrap{max-width:640px;margin:0 auto;padding:48px 24px 80px;}
   .dash-card{background:var(--white);border:1px solid #EAE3D6;border-radius:var(--radius-lg);padding:32px;margin-bottom:24px;}
   .dash-field{margin-bottom:16px;}
@@ -61,8 +86,12 @@
   .menu-row-info{flex:1;min-width:0;}
   .menu-row-info strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .menu-row-info span{font-size:0.82rem;color:var(--text-muted);}
-  .menu-row-del{background:none;border:1px solid #DCD4C4;border-radius:8px;padding:6px 10px;font-size:0.8rem;cursor:pointer;color:var(--pink-text);}
+  .menu-row-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  .menu-row-del,.menu-row-edit{background:none;border:1px solid #DCD4C4;border-radius:8px;padding:6px 10px;font-size:0.8rem;cursor:pointer;}
+  .menu-row-del{color:var(--pink-text);}
   .menu-row-del:hover{background:var(--pink);}
+  .menu-row-edit{color:var(--text-dark);}
+  .menu-row-edit:hover{background:#F4EEE1;}
   .menu-form-box{border-top:1px dashed #DCD4C4;padding-top:20px;}
 </style>
 </head>
@@ -73,6 +102,7 @@
     <a href="/" class="logo">Pisang Ijo</a>
     <div class="admin-user" style="display:flex;align-items:center;gap:14px;">
       <span id="dashWhoami" style="color:#D9E6DE;font-size:0.9rem;"></span>
+      <a href="/" class="btn btn-outline-light">Lihat Website</a>
       <button class="btn btn-outline-light" id="dashLogoutBtn">Logout</button>
     </div>
   </div>
@@ -125,7 +155,7 @@
     <div class="menu-list" id="menuList"><p class="section-sub">Memuat menu...</p></div>
 
     <div class="menu-form-box">
-      <h4 style="margin:0 0 14px;">Tambah Menu Baru</h4>
+      <h4 style="margin:0 0 14px;" id="menuFormTitle">Tambah Menu Baru</h4>
       <label style="display:block;font-size:0.82rem;font-weight:600;color:var(--text-muted);margin-bottom:8px;">Gambar Menu</label>
       <div class="img-manager" id="menuImgManager">
         <button type="button" class="img-manager-add" id="menuImgAddBtn">
@@ -142,10 +172,14 @@
           <input type="text" id="menuNama" maxlength="100" required>
         </div>
         <div class="dash-field">
-          <label for="menuHarga">Harga (opsional)</label>
-          <input type="text" id="menuHarga" placeholder="Contoh: Rp 15.000">
+          <label for="menuHarga">Harga</label>
+          <input type="text" id="menuHarga" placeholder="Rp 15.000" inputmode="numeric">
         </div>
-        <button type="submit" class="btn btn-mustard" style="width:100%;">Tambah Menu</button>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button type="submit" class="btn btn-mustard" style="flex:1;" id="menuSubmitBtn">Tambah Menu</button>
+          <button type="button" id="menuCancelEditBtn" style="display:none;background:none;border:1px solid #DCD4C4;border-radius:999px;padding:0 20px;font-weight:600;font-size:0.88rem;cursor:pointer;color:var(--text-dark);">Batal</button>
+        </div>
         <div class="dash-msg" id="menuMsg"></div>
       </form>
     </div>
@@ -157,6 +191,17 @@
   </div>
 </section>
 
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>Konfirmasi</h3>
+    <p id="confirmMessage"></p>
+    <div class="confirm-actions">
+      <button type="button" class="confirm-cancel" id="confirmCancelBtn">Batal</button>
+      <button type="button" class="confirm-ok" id="confirmOkBtn">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script>
   var STORE_IMAGES = []; // array url string, urutan = urutan tampil, index 0 = sampul
@@ -164,6 +209,19 @@
   function escapeHtml(str) {
     return $("<div>").text(str == null ? "" : str).html();
   }
+
+  function showConfirm(message, onConfirm) {
+    $("#confirmMessage").text(message);
+    $("#confirmOverlay").addClass("open");
+
+    $("#confirmOkBtn").off("click").on("click", function () {
+      $("#confirmOverlay").removeClass("open");
+      onConfirm();
+    });
+    $("#confirmCancelBtn").off("click").on("click", function () {
+      $("#confirmOverlay").removeClass("open");
+    });
+  }  
 
   function parseImages(raw) {
     if (!raw) return [];
@@ -272,6 +330,20 @@
     $("#menuImageInput").trigger("click");
   });
 
+  $("#menuHarga").on("input", function () {
+    var digitsOnly = this.value.replace(/[^0-9]/g, "");
+    if (!digitsOnly) {
+      this.value = "";
+      return;
+    }
+    var formatted = digitsOnly.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    this.value = "Rp " + formatted;
+  });
+
+  $("#menuHarga").on("focus", function () {
+    if (!this.value) this.value = "Rp ";
+  });
+
   $("#menuImageInput").on("change", function () {
     var files = Array.from(this.files || []);
     if (!files.length) return;
@@ -316,8 +388,12 @@
       });
   });
 
+  var MENU_ROWS = []; // cache data menu terakhir dari server, dipakai saat edit
+  var EDITING_MENU_ID = null; // null = mode tambah, angka = sedang edit menu ini
+
   function loadMenu() {
     $.getJSON("/api/toko/menu").done(function (rows) {
+      MENU_ROWS = rows;
       var $list = $("#menuList").empty();
       if (!rows.length) {
         $list.append('<p class="section-sub">Belum ada menu. Tambahkan menu pertama kamu di bawah.</p>');
@@ -333,7 +409,10 @@
           '<div class="menu-row">' + img +
             '<div class="menu-row-info"><strong>' + escapeHtml(m.nama) + '</strong>' +
             '<span>' + escapeHtml(m.harga || "Harga belum diisi") + (pics.length > 1 ? ' · ' + pics.length + ' foto' : '') + '</span></div>' +
-            '<button type="button" class="menu-row-del" data-id="' + m.id + '">Hapus</button>' +
+            '<div class="menu-row-actions">' +
+              '<button type="button" class="menu-row-edit" data-id="' + m.id + '">Edit</button>' +
+              '<button type="button" class="menu-row-del" data-id="' + m.id + '">Hapus</button>' +
+            '</div>' +
           '</div>'
         );
       });
@@ -341,32 +420,69 @@
   }
 
   $(document).on("click", ".menu-row-del", function () {
-    if (!confirm("Hapus menu ini? Ulasan untuk menu ini juga ikut terhapus.")) return;
-    $.ajax({ url: "/api/toko/menu/" + $(this).data("id"), method: "DELETE" }).done(loadMenu);
+    var menuId = $(this).data("id");
+    showConfirm("Hapus menu ini? Ulasan untuk menu ini juga ikut terhapus.", function () {
+      $.ajax({ url: "/api/toko/menu/" + menuId, method: "DELETE" }).done(function () {
+        if (EDITING_MENU_ID === menuId) exitEditMode();
+        loadMenu();
+      });
+    });
   });
+
+  $(document).on("click", ".menu-row-edit", function () {
+    var menuId = $(this).data("id");
+    var m = MENU_ROWS.find(function (row) { return row.id === menuId; });
+    if (!m) return;
+
+    EDITING_MENU_ID = menuId;
+    $("#menuNama").val(m.nama || "");
+    var digits = String(m.harga || "").replace(/[^0-9]/g, "");
+    $("#menuHarga").val(digits ? "Rp " + digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : "");
+    MENU_IMAGES = parseImages(m.image_url);
+    renderMenuPicker();
+
+    $("#menuFormTitle").text("Edit Menu");
+    $("#menuSubmitBtn").text("Simpan Perubahan");
+    $("#menuCancelEditBtn").show();
+    $("html, body").animate({ scrollTop: $("#menuForm").offset().top - 100 }, 300);
+  });
+
+  function exitEditMode() {
+    EDITING_MENU_ID = null;
+    $("#menuForm")[0].reset();
+    MENU_IMAGES = [];
+    renderMenuPicker();
+    $("#menuFormTitle").text("Tambah Menu Baru");
+    $("#menuSubmitBtn").text("Tambah Menu");
+    $("#menuCancelEditBtn").hide();
+  }
+
+  $("#menuCancelEditBtn").on("click", exitEditMode);
 
   $("#menuForm").on("submit", function (e) {
     e.preventDefault();
     var $msg = $("#menuMsg").removeClass("show ok err");
+    var hargaVal = $("#menuHarga").val().trim();
+    var harga = hargaVal === "Rp" || hargaVal === "Rp " ? "" : hargaVal;
+    var isEditing = EDITING_MENU_ID !== null;
+
     $.ajax({
-      url: "/api/toko/menu",
-      method: "POST",
+      url: isEditing ? "/api/toko/menu/" + EDITING_MENU_ID : "/api/toko/menu",
+      method: isEditing ? "PUT" : "POST",
       contentType: "application/json",
       data: JSON.stringify({
         nama: $("#menuNama").val().trim(),
-        harga: $("#menuHarga").val().trim(),
+        harga: harga,
         images: MENU_IMAGES,
       }),
     })
       .done(function () {
-        $msg.addClass("show ok").text("Menu ditambahkan.");
-        $("#menuNama, #menuHarga").val("");
-        MENU_IMAGES = [];
-        renderMenuPicker();
+        $msg.addClass("show ok").text(isEditing ? "Perubahan menu tersimpan." : "Menu ditambahkan.");
+        exitEditMode();
         loadMenu();
       })
       .fail(function (xhr) {
-        var err = (xhr.responseJSON && xhr.responseJSON.error) || "Gagal menambah menu.";
+        var err = (xhr.responseJSON && xhr.responseJSON.error) || (isEditing ? "Gagal menyimpan perubahan." : "Gagal menambah menu.");
         $msg.addClass("show err").text(err);
       });
   });
