@@ -12,8 +12,26 @@ router.get("/api/site-content", (req, res) => {
     content[row.key] = JSON.parse(row.data);
   });
 
+  // rating & ulasan_count dihitung langsung dari testimoni yang sudah
+  // disetujui (approved = 1) dan menyasar toko ini (target_type='store'),
+  // bukan dari kolom statis di tabel stores. Jadi rating selalu
+  // mencerminkan ulasan asli, dan otomatis berubah begitu ada ulasan
+  // baru yang di-approve admin.
   const stores = db
-    .prepare("SELECT * FROM stores WHERE approval_status = 'approved' ORDER BY sort_order ASC, id ASC")
+    .prepare(
+      `SELECT
+         stores.*,
+         ROUND(COALESCE(AVG(testimonials.stars), 0), 1) AS rating,
+         COUNT(testimonials.id) AS ulasan_count
+       FROM stores
+       LEFT JOIN testimonials
+         ON testimonials.target_type = 'store'
+         AND testimonials.target_id = stores.id
+         AND testimonials.approved = 1
+       WHERE stores.approval_status = 'approved'
+       GROUP BY stores.id
+       ORDER BY stores.sort_order ASC, stores.id ASC`
+    )
     .all();
 
   const menu = db.prepare(`
