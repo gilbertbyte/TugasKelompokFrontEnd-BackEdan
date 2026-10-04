@@ -1,8 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-// Di Railway: pasang Volume (mount path /data) lalu set variable DATA_DIR=/data
-// Di lokal: tanpa DATA_DIR, semuanya tetap di lokasi lama (./data dan ./public/uploads)
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, "data");
 const DB_PATH = path.join(DATA_DIR, "app.db");
 const UPLOADS_DIR = process.env.DATA_DIR

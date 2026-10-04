@@ -148,16 +148,10 @@ db.prepare("SELECT id, jam_buka, jam_tutup FROM stores").all().forEach((store) =
 });
 ensureColumn("testimonials", "stars", "INTEGER DEFAULT 5");
 ensureColumn("testimonials", "sort_order", "INTEGER DEFAULT 0");
-// What the review is actually about: a specific store or a specific menu
-// item, so reviews don't end up reading like generic "review of the
-// website" text.
 ensureColumn("testimonials", "target_type", "TEXT");
 ensureColumn("testimonials", "target_id", "INTEGER");
 ensureColumn("testimonials", "target_nama", "TEXT");
 
-// Add "approved" moderation column. Testimonials that already existed
-// before this column was added are treated as already-approved (they
-// were already publicly visible), so they don't disappear.
 const hadApprovedColumn = db
   .prepare("PRAGMA table_info(testimonials)")
   .all()
@@ -315,10 +309,6 @@ if (db.prepare("SELECT COUNT(*) AS c FROM faqs").get().c === 0) {
   ].forEach((f) => insertFaq.run(f));
 }
 
-// Auto-seed admin user from environment variables.
-// This runs every time the server starts. Set ADMIN_USERNAME and
-// ADMIN_PASSWORD in your hosting provider's environment variables to
-// create/update the admin.
 if (process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD) {
   const adminUsername = process.env.ADMIN_USERNAME;
   const existingAdmin = db

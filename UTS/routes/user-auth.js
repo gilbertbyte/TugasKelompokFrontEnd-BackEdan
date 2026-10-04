@@ -77,8 +77,6 @@ router.post("/register-toko", authLimiter, async (req, res) => {
     `INSERT INTO users (nama, email, password_hash, role, status, store_id)
      VALUES (?, ?, ?, 'toko', 'pending', ?)`
   ).run(nama.trim(), email.toLowerCase().trim(), hash, storeResult.lastInsertRowid);
-
-  // Sengaja TIDAK auto-login — akun belum aktif sampai di-approve.
   res.status(201).json({
     ok: true,
     message: "Pendaftaran toko berhasil dikirim. Akunmu akan aktif setelah disetujui admin.",

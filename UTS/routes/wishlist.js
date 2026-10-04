@@ -59,7 +59,6 @@ router.post("/", (req, res) => {
       "INSERT INTO wishlist_items (user_id, item_type, item_id) VALUES (?, ?, ?)"
     ).run(req.session.userId, item_type, item_id);
   } catch (err) {
-    // Sudah ada di wishlist — anggap saja berhasil.
   }
 
   res.status(201).json({ ok: true });
