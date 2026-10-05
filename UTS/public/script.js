@@ -29,6 +29,19 @@ $(function () {
     if (content.site && content.site.site_title) document.title = content.site.site_title;
   }
 
+  function renderFaqs(faqs) {
+    var $accordion = $("#faqAccordion").empty();
+
+    (faqs || []).forEach(function (faq) {
+      $accordion.append(
+        '<div class="accordion-item">' +
+          '<button class="accordion-trigger" type="button">' + escapeHtml(faq.question) + '</button>' +
+          '<div class="accordion-panel"><p>' + escapeHtml(faq.answer) + '</p></div>' +
+        '</div>'
+      );
+    });
+  }
+
   function imageList(value) {
     if (Array.isArray(value)) return value.filter(Boolean);
     if (typeof value !== "string" || !value) return [];
@@ -267,6 +280,7 @@ $(function () {
         STATE.stores = data.stores || [];
         STATE.menu = data.menu || [];
         applyContent(data.content);
+        renderFaqs(data.faqs);
         var about = (data.content && data.content.about) || {};
         var aboutImages = about.images || about.image_url;
         var aboutMedia = imageSlideshowHtml(aboutImages, about.heading || "Tentang platform") || escapeHtml(about.media_text || "");
@@ -347,12 +361,12 @@ $(function () {
 
   /*FAQ accordion*/
 
-  $(".accordion-trigger").on("click", function () {
+  $("#faqAccordion").on("click", ".accordion-trigger", function () {
     var $item = $(this).closest(".accordion-item");
     var $panel = $item.find(".accordion-panel");
     var isOpen = $item.hasClass("open");
 
-    $(".accordion-item").removeClass("open").find(".accordion-panel").css("max-height", 0);
+    $("#faqAccordion .accordion-item").removeClass("open").find(".accordion-panel").css("max-height", 0);
 
     if (!isOpen) {
       $item.addClass("open");
